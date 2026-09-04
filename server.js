@@ -18,6 +18,8 @@ let productOverrides = store.loadOverrides();
 let products = mergeProducts();
 let orders = [];
 let contactMessages = [];
+let customers = store.loadCustomers();
+let sessions = [];
 
 function mergeProducts() {
     const merged = baseProducts.map((p) => {
@@ -674,36 +676,73 @@ app.post("/api/signup", async (req, res) => {
             return res.status(400).json({ success: false, message: "All fields are required" });
         }
         
-        // Check if email already exists
-        const existing = await supabase.sb("/customers?email=eq." + encodeURIComponent(email) + "&select=id");
-        if (existing && existing.length > 0) {
-            return res.status(400).json({ success: false, message: "Email already registered" });
+        let customerId;
+        let session;
+        
+        try {
+            // Try Supabase first
+            const existing = await supabase.sb("/customers?email=eq." + encodeURIComponent(email) + "&select=id");
+            if (existing && existing.length > 0) {
+                return res.status(400).json({ success: false, message: "Email already registered" });
+            }
+            
+            // Create customer in Supabase
+            const customer = {
+                first_name: firstName,
+                last_name: lastName,
+                email: email,
+                phone: phone,
+                password: password,
+                is_admin: email === "devdharrshans.23csd@kongu.edu"
+            };
+            
+            const created = await supabase.sb("/customers", {
+                method: "POST",
+                headers: { "Prefer": "return=representation" },
+                body: JSON.stringify(customer)
+            });
+            
+            if (!created || !created[0]) {
+                throw new Error("Failed to create customer in Supabase");
+            }
+            
+            customerId = created[0].id;
+            session = await createSession(customerId);
+        } catch (supabaseError) {
+            console.warn("Supabase signup failed, using local fallback:", supabaseError.message);
+            
+            // Fallback to local storage
+            const existingLocal = customers.find(c => c.email && c.email.toLowerCase() === email.toLowerCase());
+            if (existingLocal) {
+                return res.status(400).json({ success: false, message: "Email already registered" });
+            }
+            
+            // Create local customer
+            const localCustomer = {
+                id: "cust_" + Date.now() + "_" + Math.random().toString(36).substr(2, 9),
+                first_name: firstName,
+                last_name: lastName,
+                email: email,
+                phone: phone,
+                password: password,
+                is_admin: email === "devdharrshans.23csd@kongu.edu",
+                created_at: new Date().toISOString()
+            };
+            
+            customers.push(localCustomer);
+            store.saveCustomers(customers);
+            customerId = localCustomer.id;
+            
+            // Create local session
+            const localSession = {
+                token: require("crypto").randomBytes(32).toString("hex"),
+                customer_id: customerId,
+                expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+                created_at: new Date().toISOString()
+            };
+            sessions.push(localSession);
+            session = localSession;
         }
-        
-        // Create customer
-        const customer = {
-            first_name: firstName,
-            last_name: lastName,
-            email: email,
-            phone: phone,
-            password: password,
-            is_admin: email === "devdharrshans.23csd@kongu.edu"
-        };
-        
-        const created = await supabase.sb("/customers", {
-            method: "POST",
-            headers: { "Prefer": "return=representation" },
-            body: JSON.stringify(customer)
-        });
-        
-        if (!created || !created[0]) {
-            return res.status(500).json({ success: false, message: "Failed to create account" });
-        }
-        
-        const customerId = created[0].id;
-        
-        // Create session
-        const session = await createSession(customerId);
         
         res.json({
             success: true,
@@ -731,21 +770,52 @@ app.post("/api/login", async (req, res) => {
             return res.status(400).json({ success: false, message: "Email and password required" });
         }
         
-        // Find customer
-        const customers = await supabase.sb("/customers?email=eq." + encodeURIComponent(email) + "&select=*");
+        let customer;
         
-        if (!customers || customers.length === 0) {
-            return res.status(401).json({ success: false, message: "Invalid credentials" });
-        }
-        
-        const customer = customers[0];
-        
-        if (customer.password !== password) {
-            return res.status(401).json({ success: false, message: "Invalid credentials" });
+        try {
+            // Try Supabase first
+            const customers_list = await supabase.sb("/customers?email=eq." + encodeURIComponent(email) + "&select=*");
+            
+            if (!customers_list || customers_list.length === 0) {
+                throw new Error("Customer not found in Supabase");
+            }
+            
+            customer = customers_list[0];
+            
+            if (customer.password !== password) {
+                return res.status(401).json({ success: false, message: "Invalid credentials" });
+            }
+        } catch (supabaseError) {
+            console.warn("Supabase login failed, using local fallback:", supabaseError.message);
+            
+            // Fallback to local storage
+            customer = customers.find(c => c.email && c.email.toLowerCase() === email.toLowerCase());
+            
+            if (!customer) {
+                return res.status(401).json({ success: false, message: "Invalid credentials" });
+            }
+            
+            if (customer.password !== password) {
+                return res.status(401).json({ success: false, message: "Invalid credentials" });
+            }
         }
         
         // Create session
-        const session = await createSession(customer.id);
+        let session;
+        try {
+            session = await createSession(customer.id);
+        } catch (sessionError) {
+            console.warn("Supabase session creation failed, using local fallback:", sessionError.message);
+            
+            // Create local session
+            session = {
+                token: require("crypto").randomBytes(32).toString("hex"),
+                customer_id: customer.id,
+                expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+                created_at: new Date().toISOString()
+            };
+            sessions.push(session);
+        }
         
         res.json({
             success: true,
@@ -771,7 +841,13 @@ app.post("/api/logout", async (req, res) => {
         const token = req.headers.authorization?.replace("Bearer ", "");
         
         if (token) {
-            await supabase.sb("/sessions?token=eq." + encodeURIComponent(token), { method: "DELETE" });
+            try {
+                await supabase.sb("/sessions?token=eq." + encodeURIComponent(token), { method: "DELETE" });
+            } catch (supabaseError) {
+                console.warn("Supabase logout failed, using local fallback:", supabaseError.message);
+                // Remove from local sessions
+                sessions = sessions.filter(s => s.token !== token);
+            }
         }
         
         res.json({ success: true });
@@ -801,18 +877,46 @@ async function createSession(customerId) {
 async function validateSession(token) {
     if (!token) return null;
     
-    const sessions = await supabase.sb("/sessions?token=eq." + encodeURIComponent(token) + "&select=*,customers(id,first_name,last_name,email,phone)");
-    
-    if (!sessions || sessions.length === 0) return null;
-    
-    const session = sessions[0];
-    
-    if (new Date(session.expires_at) < new Date()) {
-        await supabase.sb("/sessions?token=eq." + encodeURIComponent(token), { method: "DELETE" });
-        return null;
+    try {
+        // Try Supabase first
+        const sessions_list = await supabase.sb("/sessions?token=eq." + encodeURIComponent(token) + "&select=*,customers(id,first_name,last_name,email,phone)");
+        
+        if (!sessions_list || sessions_list.length === 0) return null;
+        
+        const session = sessions_list[0];
+        
+        if (new Date(session.expires_at) < new Date()) {
+            await supabase.sb("/sessions?token=eq." + encodeURIComponent(token), { method: "DELETE" });
+            return null;
+        }
+        
+        return session.customers;
+    } catch (supabaseError) {
+        console.warn("Supabase session validation failed, using local fallback:", supabaseError.message);
+        
+        // Fallback to local storage
+        const session = sessions.find(s => s.token === token);
+        
+        if (!session) return null;
+        
+        if (new Date(session.expires_at) < new Date()) {
+            // Remove expired session
+            sessions = sessions.filter(s => s.token !== token);
+            return null;
+        }
+        
+        // Find customer from local storage
+        const customer = customers.find(c => c.id === session.customer_id);
+        if (!customer) return null;
+        
+        return {
+            id: customer.id,
+            first_name: customer.first_name,
+            last_name: customer.last_name,
+            email: customer.email,
+            phone: customer.phone
+        };
     }
-    
-    return session.customers;
 }
 
 // Middleware: Require authentication

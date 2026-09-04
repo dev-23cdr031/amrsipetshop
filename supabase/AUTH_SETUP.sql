@@ -39,7 +39,7 @@ ALTER TABLE public.sessions ENABLE ROW LEVEL SECURITY;
 -- (This is a placeholder - you'll need to manually add existing users or re-signup)
 INSERT INTO public.customers (id, first_name, last_name, email, phone, password, is_admin)
 VALUES 
-    ('cust_existing_1', 'DEV DHARRSHAN', 'S 23CDR031', 'devdharrshans.23csd@kongu.edu', '0908062064', 'admin123', true)
+    ('cust_existing_1', 'DEV DHARRSHAN', 'S 23CDR031', 'devdharrshans.23csd@kongu.edu', '0908062064', '19072004@Dev', true)
 ON CONFLICT (email) DO NOTHING;
 
 -- Step 6: Verify

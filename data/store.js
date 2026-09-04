@@ -5,6 +5,7 @@ const path = require("path");
 const DATA_DIR = path.join(__dirname);
 const ORDERS_FILE = path.join(DATA_DIR, "orders.json");
 const OVERRIDES_FILE = path.join(DATA_DIR, "product-overrides.json");
+const CUSTOMERS_FILE = path.join(DATA_DIR, "customers.json");
 
 function readJSON(file, fallback) {
     try {
@@ -48,11 +49,39 @@ function saveOverrides(overrides) {
     return writeJSON(OVERRIDES_FILE, overrides);
 }
 
+// Customers (local fallback for auth when Supabase tables are missing)
+function loadCustomers() {
+    return readJSON(CUSTOMERS_FILE, []);
+}
+function saveCustomers(customers) {
+    return writeJSON(CUSTOMERS_FILE, customers);
+}
+function findCustomerByEmail(email) {
+    const customers = loadCustomers();
+    return customers.find(c => c.email && c.email.toLowerCase() === email.toLowerCase()) || null;
+}
+function findCustomerById(id) {
+    const customers = loadCustomers();
+    return customers.find(c => c.id === id) || null;
+}
+function addCustomer(customer) {
+    const customers = loadCustomers();
+    customers.push(customer);
+    saveCustomers(customers);
+    return customer;
+}
+
 module.exports = {
     loadOrders,
     saveOrders,
     loadOverrides,
     saveOverrides,
+    loadCustomers,
+    saveCustomers,
+    findCustomerByEmail,
+    findCustomerById,
+    addCustomer,
     ORDERS_FILE,
-    OVERRIDES_FILE
+    OVERRIDES_FILE,
+    CUSTOMERS_FILE
 };

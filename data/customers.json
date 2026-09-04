@@ -1,0 +1,12 @@
+[
+  {
+    "id": "cust_existing_1",
+    "first_name": "DEV DHARRSHAN",
+    "last_name": "S 23CDR031",
+    "email": "devdharrshans.23csd@kongu.edu",
+    "phone": "0908062064",
+    "password": "19072004@Dev",
+    "is_admin": true,
+    "created_at": "2025-01-01T00:00:00.000Z"
+  }
+]
