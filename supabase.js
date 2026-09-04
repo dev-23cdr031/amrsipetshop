@@ -130,8 +130,43 @@ async function insertOrder(order) {
 
 async function updateOrder(orderId, fields) {
     const patch = {};
-    if (fields.status !== undefined) patch.status = fields.status;
-    if (fields.trackingNumber !== undefined) patch.tracking_number = fields.trackingNumber;
+    // Map all camelCase fields to snake_case for Supabase
+    const fieldMap = {
+        status: "status",
+        trackingNumber: "tracking_number",
+        customerId: "customer_id",
+        customerName: "customer_name",
+        customerEmail: "customer_email",
+        customerPhone: "customer_phone",
+        shippingAddress: "shipping_address",
+        address: "address",
+        items: "items",
+        subtotal: "subtotal",
+        shipping: "shipping",
+        tax: "tax",
+        discount: "discount",
+        promoCode: "promo_code",
+        total: "total",
+        paymentMethod: "payment_method",
+        paymentDetails: "payment_details",
+        billingSameAsShipping: "billing_same_as_shipping",
+        billingAddress: "billing_address",
+        paymentStatus: "payment_status",
+        deliveryMethod: "delivery_method",
+        estimatedDelivery: "estimated_delivery"
+    };
+    
+    for (const [camelCase, snakeCase] of Object.entries(fieldMap)) {
+        if (fields[camelCase] !== undefined) {
+            patch[snakeCase] = fields[camelCase];
+        }
+    }
+    
+    // Allow any unlisted fields to pass through (for future compatibility)
+    for (const [key, value] of Object.entries(fields)) {
+        if (!fieldMap[key]) patch[key] = value;
+    }
+    
     if (!Object.keys(patch).length) return;
     await sb("/orders?order_id=eq." + encodeURIComponent(orderId), { method: "PATCH", body: JSON.stringify(patch) });
 }
@@ -139,6 +174,66 @@ async function updateOrder(orderId, fields) {
 async function deleteOrder(orderId) {
     await sb("/orders?order_id=eq." + encodeURIComponent(orderId), { method: "DELETE" });
 }
+
+// ── PRODUCT FUNCTIONS ───────────────────────────────────────────────────────
+async function fetchProducts() {
+    const rows = await sb("/products?select=*&order=created_at.asc");
+    return (Array.isArray(rows) ? rows : []).map(row => ({
+        id: row.id,
+        name: row.name,
+        category: row.category,
+        price: Number(row.price),
+        stock: row.stock,
+        description: row.description,
+        image: row.image,
+        archived: row.archived,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at
+    }));
+}
+
+async function insertProduct(product) {
+    await sb("/products", { 
+        method: "POST", 
+        headers: { Prefer: "return=representation" }, 
+        body: JSON.stringify({
+            name: product.name,
+            category: product.category,
+            price: product.price,
+            stock: product.stock,
+            description: product.description,
+            image: product.image,
+            archived: product.archived || false
+        }) 
+    });
+}
+
+async function updateProduct(productId, fields) {
+    const patch = {};
+    const fieldMap = {
+        name: "name",
+        category: "category",
+        price: "price",
+        stock: "stock",
+        description: "description",
+        image: "image",
+        archived: "archived"
+    };
+    
+    for (const [camelCase, snakeCase] of Object.entries(fieldMap)) {
+        if (fields[camelCase] !== undefined) {
+            patch[snakeCase] = fields[camelCase];
+        }
+    }
+    
+    if (!Object.keys(patch).length) return;
+    await sb("/products?id=eq." + encodeURIComponent(productId), { method: "PATCH", body: JSON.stringify(patch) });
+}
+
+async function deleteProduct(productId) {
+    await sb("/products?id=eq." + encodeURIComponent(productId), { method: "DELETE" });
+}
+// ── END PRODUCT FUNCTIONS ────────────────────────────────────────────────────
 
 async function fetchMessages() {
     const rows = await sb("/contact_messages?select=*&order=created_at.asc");
@@ -154,6 +249,10 @@ module.exports = {
     insertOrder,
     updateOrder,
     deleteOrder,
+    fetchProducts,
+    insertProduct,
+    updateProduct,
+    deleteProduct,
     fetchMessages,
     insertMessage,
     snakeToCamelOrder,

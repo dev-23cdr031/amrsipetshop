@@ -114,35 +114,61 @@ app.use(express.json({ limit: "1mb" }));
 app.use(express.static(path.join(__dirname, "public")));
 
 // â”€â”€ PRODUCTS API â”€â”€
-app.get("/api/products", (req, res) => {
+app.get("/api/products", async (req, res) => {
+    try {
+        // Always fetch fresh products from Supabase
+        products = await supabase.fetchProducts();
+    } catch (e) {
+        console.error("Supabase fetch failed in /api/products, using local products:", e.message);
+    }
     const includeArchived = req.query.includeArchived === "1" || req.query.includeArchived === "true";
     res.json(includeArchived ? products : products.filter((p) => !p.archived));
 });
 
-app.get("/api/products/:id", (req, res) => {
+app.get("/api/products/:id", async (req, res) => {
+    try {
+        // Refresh products before lookup
+        products = await supabase.fetchProducts();
+    } catch (e) {
+        console.error("Supabase fetch failed in /api/products/:id, using local products:", e.message);
+    }
     const product = findProduct(req.params.id);
     if (!product) return res.status(404).json({ success: false, message: "Product not found" });
     res.json(product);
 });
 
-app.post("/api/products", (req, res) => {
+app.post("/api/products", async (req, res) => {
     const { name, category, price, stock, description, image } = req.body || {};
     if (!name || price == null) return res.status(400).json({ success: false, message: "name and price are required" });
-    const id = products.reduce((max, p) => Math.max(max, p.id), 0) + 1;
+    
     const product = {
-        id, name: String(name).trim(), category: category || "accessories",
+        name: String(name).trim(), category: category || "accessories",
         price: Number(price), stock: stock != null ? Number(stock) : 0,
-        description: description || "", image: image || "/images/logo.jpeg"
+        description: description || "", image: image || "/images/logo.jpeg",
+        archived: false
     };
-    productOverrides[id] = product;
-    persistOverrides();
-    res.json({ success: true, product });
+
+    try {
+        // Persist to Supabase first
+        await supabase.insertProduct(product);
+        // Refresh local products array with fresh Supabase data
+        products = await supabase.fetchProducts();
+        // Get the newly created product
+        const newProduct = products[products.length - 1];
+        // Broadcast to admin dashboards for real-time updates
+        broadcast("product:new", { product: newProduct }, function (c) { return c.channel === "admin"; });
+        res.json({ success: true, product: newProduct });
+    } catch (e) {
+        console.error("Failed to create product in Supabase:", e.message);
+        res.status(500).json({ success: false, message: "Failed to create product: " + e.message });
+    }
 });
 
-app.put("/api/products/:id", (req, res) => {
+app.put("/api/products/:id", async (req, res) => {
     const id = Number(req.params.id);
     const existing = findProduct(id);
     if (!existing) return res.status(404).json({ success: false, message: "Product not found" });
+    
     const { name, category, price, stock, description, image, archived } = req.body || {};
     const patch = {};
     if (name != null) patch.name = String(name).trim();
@@ -152,18 +178,39 @@ app.put("/api/products/:id", (req, res) => {
     if (description != null) patch.description = String(description);
     if (image != null) patch.image = String(image);
     if (archived != null) patch.archived = Boolean(archived);
-    productOverrides[id] = Object.assign({}, productOverrides[id] || {}, patch);
-    persistOverrides();
-    res.json({ success: true, product: findProduct(id) });
+
+    try {
+        // Update in Supabase
+        await supabase.updateProduct(id, patch);
+        // Refresh local products array
+        products = await supabase.fetchProducts();
+        const updatedProduct = findProduct(id);
+        // Broadcast to admin dashboards
+        broadcast("product:updated", { product: updatedProduct }, function (c) { return c.channel === "admin"; });
+        res.json({ success: true, product: updatedProduct });
+    } catch (e) {
+        console.error("Failed to update product in Supabase:", e.message);
+        res.status(500).json({ success: false, message: "Failed to update product: " + e.message });
+    }
 });
 
-app.delete("/api/products/:id", (req, res) => {
+app.delete("/api/products/:id", async (req, res) => {
     const id = Number(req.params.id);
     const existing = findProduct(id);
     if (!existing) return res.status(404).json({ success: false, message: "Product not found" });
-    productOverrides[id] = Object.assign({}, productOverrides[id] || {}, { stock: 0, archived: true });
-    persistOverrides();
-    res.json({ success: true, message: "Product archived" });
+
+    try {
+        // Delete from Supabase (permanently removes the product)
+        await supabase.deleteProduct(id);
+        // Refresh local products array
+        products = await supabase.fetchProducts();
+        // Broadcast to admin dashboards
+        broadcast("product:deleted", { productId: id }, function (c) { return c.channel === "admin"; });
+        res.json({ success: true, message: "Product deleted successfully" });
+    } catch (e) {
+        console.error("Failed to delete product from Supabase:", e.message);
+        res.status(500).json({ success: false, message: "Failed to delete product: " + e.message });
+    }
 });
 
 // â”€â”€ PROMO CODE API â”€â”€
@@ -358,7 +405,15 @@ app.post("/api/orders", async (req, res) => {
     res.json({ success: true, message: "Order received", order });
 });
 
-app.get("/api/orders", (req, res) => res.json(orders.slice().reverse()));
+app.get("/api/orders", async (req, res) => {
+    try {
+        // Always fetch fresh orders from Supabase for admin dashboard
+        orders = await supabase.fetchOrders();
+    } catch (e) {
+        console.error("Supabase fetch failed in /api/orders, using local orders:", e.message);
+    }
+    res.json(orders.slice().reverse());
+});
 
 app.get("/api/orders/:id", (req, res) => {
     const order = orders.find((o) => o.orderId === req.params.id);
@@ -367,7 +422,7 @@ app.get("/api/orders/:id", (req, res) => {
 });
 
 app.patch("/api/orders/:id/status", async (req, res) => {
-    const order = orders.find((o) => o.orderId === req.params.id);
+    let order = orders.find((o) => o.orderId === req.params.id);
     if (!order) return res.status(404).json({ success: false, message: "Order not found" });
     const status = String(req.body.status || "").toLowerCase();
     if (!VALID_STATUSES.includes(status)) return res.status(400).json({ success: false, message: "Invalid status." });
@@ -382,6 +437,9 @@ app.patch("/api/orders/:id/status", async (req, res) => {
     }
     if (status === "shipped" && !order.trackingNumber) order.trackingNumber = "TRK" + Date.now().toString().slice(-9);
     await updateOrderInSupabase(order.orderId, { status: order.status, trackingNumber: order.trackingNumber });
+    
+    // Refresh orders array from Supabase to ensure it's always in sync
+    try { orders = await supabase.fetchOrders(); } catch (e) { console.error("Failed to refresh orders after status update:", e); }
 
     // â”€â”€ Realtime broadcast â”€â”€
     // Customer's tracking page for this order
@@ -396,11 +454,40 @@ app.patch("/api/orders/:id/status", async (req, res) => {
     res.json({ success: true, order });
 });
 
+// â”€â”€ FULL ORDER EDIT ENDPOINT (admin can edit any order details) â”€â”€
+app.patch("/api/orders/:id", async (req, res) => {
+    const orderIndex = orders.findIndex((o) => o.orderId === req.params.id);
+    if (orderIndex === -1) return res.status(404).json({ success: false, message: "Order not found" });
+    
+    // Merge the incoming updates into the existing order
+    const updatedOrder = { ...orders[orderIndex], ...req.body };
+    orders[orderIndex] = updatedOrder;
+    
+    // Update in Supabase
+    await updateOrderInSupabase(updatedOrder.orderId, req.body);
+    
+    // Refresh orders array from Supabase
+    try { orders = await supabase.fetchOrders(); } catch (e) { console.error("Failed to refresh orders after edit:", e); }
+    
+    // Broadcast to admin dashboards to refresh
+    broadcast("order:updated", { orderId: updatedOrder.orderId, order: updatedOrder }, function (c) {
+        return c.channel === "admin";
+    });
+    
+    res.json({ success: true, order: updatedOrder });
+});
+
 app.delete("/api/orders/:id", async (req, res) => {
     const idx = orders.findIndex((o) => o.orderId === req.params.id);
     if (idx === -1) return res.status(404).json({ success: false, message: "Order not found" });
     const [removed] = orders.splice(idx, 1);
     await deleteOrderFromSupabase(removed.orderId);
+    // Refresh orders array from Supabase to ensure it's always in sync
+    try { orders = await supabase.fetchOrders(); } catch (e) { console.error("Failed to refresh orders after delete:", e); }
+    // Broadcast to admin dashboards to refresh
+    broadcast("order:deleted", { orderId: removed.orderId }, function (c) {
+        return c.channel === "admin";
+    });
     res.json({ success: true, message: "Order deleted", orderId: removed.orderId });
 });
 
@@ -417,64 +504,95 @@ app.post("/api/orders/offline", async (req, res) => {
     if (!customerName) return res.status(400).json({ success: false, message: "Customer name is required." });
     if (!items.length) return res.status(400).json({ success: false, message: "Add at least one item." });
 
-    const validated = [];
-    for (const item of items) {
-        const product = findProduct(item.id);
-        if (!product) return res.status(400).json({ success: false, message: "Product #" + item.id + " not found." });
-        const qty = Math.max(1, Number(item.quantity) || 1);
-        validated.push({ id: product.id, name: product.name, price: Number(product.price), image: product.image, quantity: qty });
+    try {
+        // First refresh products from Supabase to get latest stock levels
+        products = await supabase.fetchProducts();
+        
+        const validated = [];
+        for (const item of items) {
+            const product = findProduct(item.id);
+            if (!product) return res.status(400).json({ success: false, message: "Product #" + item.id + " not found." });
+            const qty = Math.max(1, Number(item.quantity) || 1);
+            if ((product.stock || 0) < qty) {
+                return res.status(409).json({ success: false, message: "Only " + (product.stock || 0) + " unit(s) of \"" + product.name + "\" are in stock." });
+            }
+            validated.push({ id: product.id, name: product.name, price: Number(product.price), image: product.image, quantity: qty });
+        }
+        const subtotal = validated.reduce((s, i) => s + i.price * i.quantity, 0);
+
+        const order = {
+            orderId: "AMSOFF" + Date.now().toString(36).toUpperCase() + crypto.randomBytes(3).toString("hex").toUpperCase(),
+            customerId: null,
+            source: "offline",
+            customerName: customerName,
+            customerEmail: body.customerEmail || "",
+            customerPhone: customerPhone,
+            shippingAddress: "Walk-in / In-store order",
+            address: { name: customerName, phone: customerPhone, address: "In-store", landmark: "", city: "Walk-in", state: "", pincode: "" },
+            items: validated,
+            subtotal: Math.round(subtotal),
+            shipping: 0,
+            tax: 0,
+            discount: 0,
+            promoCode: null,
+            total: Math.round(subtotal),
+            paymentMethod: paymentMethod,
+            paymentDetails: body.paymentDetails || null,
+            billingSameAsShipping: true,
+            billingAddress: null,
+            paymentStatus: "confirmed",
+            deliveryMethod: "offline",
+            status: status,
+            trackingNumber: null,
+            estimatedDelivery: new Date().toISOString(),
+            createdAt: new Date().toISOString()
+        };
+
+        // Update product stock in Supabase first
+        for (const item of validated) {
+            const current = findProduct(item.id);
+            if (current) {
+                await supabase.updateProduct(item.id, { stock: Math.max(0, (current.stock || 0) - item.quantity) });
+            }
+        }
+        
+        // Persist the offline order to Supabase
+        await supabase.insertOrder(order);
+        
+        // Refresh local orders array with fresh Supabase data
+        orders = await supabase.fetchOrders();
+        // Refresh local products array with updated stock levels
+        products = await supabase.fetchProducts();
+
+        // Broadcast to admin dashboards for real-time updates
+        broadcast("order:new", { order: order }, function (c) { return c.channel === "admin"; });
+        broadcast("product:updated", { products: products }, function (c) { return c.channel === "admin"; });
+
+        res.json({ success: true, message: "Offline order saved to Supabase", order });
+    } catch (e) {
+        console.error("Failed to save offline order to Supabase:", e.message);
+        res.status(500).json({ success: false, message: "Failed to save offline order: " + e.message });
     }
-    const subtotal = validated.reduce((s, i) => s + i.price * i.quantity, 0);
-
-    const order = {
-        orderId: "AMSOFF" + Date.now().toString(36).toUpperCase() + crypto.randomBytes(3).toString("hex").toUpperCase(),
-        customerId: null,
-        source: "offline",
-        customerName: customerName,
-        customerEmail: body.customerEmail || "",
-        customerPhone: customerPhone,
-        shippingAddress: "Walk-in / In-store order",
-        address: { name: customerName, phone: customerPhone, address: "In-store", landmark: "", city: "Walk-in", state: "", pincode: "" },
-        items: validated,
-        subtotal: Math.round(subtotal),
-        shipping: 0,
-        tax: 0,
-        discount: 0,
-        promoCode: null,
-        total: Math.round(subtotal),
-        paymentMethod: paymentMethod,
-        paymentDetails: body.paymentDetails || null,
-        billingSameAsShipping: true,
-        billingAddress: null,
-        paymentStatus: "confirmed",
-        deliveryMethod: "offline",
-        status: status,
-        trackingNumber: null,
-        estimatedDelivery: new Date().toISOString(),
-        createdAt: new Date().toISOString()
-    };
-
-    validated.forEach((item) => {
-        const current = findProduct(item.id);
-        if (current) productOverrides[item.id] = Object.assign({}, productOverrides[item.id] || {}, { stock: Math.max(0, (current.stock || 0) - item.quantity) });
-    });
-    orders.push(order);
-    store.saveOverrides(productOverrides);
-    products = mergeProducts();
-
-    await persistOrderToSupabase(order);
-
-    broadcast("order:new", { order: order }, function (c) { return c.channel === "admin"; });
-
-    res.json({ success: true, message: "Offline order saved", order });
 });
 
 // â”€â”€ MY ORDERS API (customer-specific) â”€â”€
-app.get("/api/my-orders", (req, res) => {
+app.get("/api/my-orders", async (req, res) => {
     const customerId = req.query.customerId;
     const email = req.query.email ? String(req.query.email).toLowerCase() : "";
     if (!customerId && !email) return res.status(400).json({ success: false, message: "customerId or email required" });
-    const myOrders = orders.filter(function (o) {
+    
+    let allOrders;
+    try {
+        // Always fetch fresh orders from Supabase first to ensure we have the latest data
+        allOrders = await supabase.fetchOrders();
+        // Update in-memory orders array to stay in sync with Supabase
+        orders = allOrders;
+    } catch (e) {
+        console.error("Supabase fetch failed in /api/my-orders, using local orders:", e.message);
+        allOrders = orders; // Fallback to in-memory array if Supabase is unreachable
+    }
+    
+    const myOrders = allOrders.filter(function (o) {
         if (customerId && o.customerId === customerId) return true;
         // Fallback: connect legacy orders (no customerId) by the same email.
         if (email && o.customerEmail && String(o.customerEmail).toLowerCase() === email && !o.customerId) return true;
@@ -735,5 +853,3 @@ startServer();
 
 // Vercel default export â€” required for zero-config Express deployment.
 module.exports = app;
-
-
