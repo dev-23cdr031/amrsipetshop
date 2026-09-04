@@ -59,8 +59,16 @@ async function persistMessageToSupabase(msg) {
 }
 async function hydrateFromSupabase() {
     try {
-        orders = await supabase.fetchOrders();
-        console.log("Hydrated", orders.length, "orders from Supabase");
+        const supabaseOrders = await supabase.fetchOrders();
+        // If Supabase returns data, use it; otherwise fall back to local orders
+        if (supabaseOrders && supabaseOrders.length > 0) {
+            orders = supabaseOrders;
+            console.log("Hydrated", orders.length, "orders from Supabase");
+        } else {
+            console.log("Supabase orders table is empty, using local orders.json");
+            orders = store.loadOrders();
+            console.log("Loaded", orders.length, "orders from local orders.json");
+        }
     } catch (e) {
         console.error("Supabase order hydration failed:", e.message);
         orders = store.loadOrders();
@@ -119,9 +127,17 @@ app.use(express.static(path.join(__dirname, "public")));
 app.get("/api/products", async (req, res) => {
     try {
         // Always fetch fresh products from Supabase
-        products = await supabase.fetchProducts();
+        const supabaseProducts = await supabase.fetchProducts();
+        // If Supabase returns data, use it; otherwise fall back to local products
+        if (supabaseProducts && supabaseProducts.length > 0) {
+            products = supabaseProducts;
+        } else {
+            console.log("Supabase products table is empty, using local products from data/products.js");
+            products = mergeProducts();
+        }
     } catch (e) {
         console.error("Supabase fetch failed in /api/products, using local products:", e.message);
+        products = mergeProducts();
     }
     const includeArchived = req.query.includeArchived === "1" || req.query.includeArchived === "true";
     res.json(includeArchived ? products : products.filter((p) => !p.archived));
@@ -130,9 +146,15 @@ app.get("/api/products", async (req, res) => {
 app.get("/api/products/:id", async (req, res) => {
     try {
         // Refresh products before lookup
-        products = await supabase.fetchProducts();
+        const supabaseProducts = await supabase.fetchProducts();
+        if (supabaseProducts && supabaseProducts.length > 0) {
+            products = supabaseProducts;
+        } else {
+            products = mergeProducts();
+        }
     } catch (e) {
         console.error("Supabase fetch failed in /api/products/:id, using local products:", e.message);
+        products = mergeProducts();
     }
     const product = findProduct(req.params.id);
     if (!product) return res.status(404).json({ success: false, message: "Product not found" });

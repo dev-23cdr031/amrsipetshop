@@ -23,8 +23,8 @@ function loadEnv() {
 }
 
 const env = Object.assign(loadEnv(), process.env);
-const SUPABASE_URL = String(env.SUPABASE_URL || "").replace(/\/+$/, "");
-const SUPABASE_KEY = env.SUPABASE_SERVICE_KEY || env.SUPABASE_SECRET_KEY || env.SUPABASE_PUBLISHABLE_KEY || "";
+const SUPABASE_URL = String(env.SUPABASE_URL || "https://jqtsepqberrygocqciml.supabase.co").replace(/\/+$/, "");
+const SUPABASE_KEY = env.SUPABASE_SERVICE_KEY || env.SUPABASE_SECRET_KEY || env.SUPABASE_PUBLISHABLE_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpxdHNlcHFiZXJyeWdvY3FjaW1sIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4NzY1Nzk0NywiZXhwIjoyMTAzMjMzOTQ3fQ.yvakXWyV288rGs7-Gh-1_m34rOaOh3V_hGF6cTQYj-k";
 const REST = SUPABASE_URL + "/rest/v1";
 
 if (!SUPABASE_URL || !SUPABASE_KEY) {
