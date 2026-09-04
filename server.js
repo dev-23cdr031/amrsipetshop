@@ -472,8 +472,14 @@ app.post("/api/orders/offline", async (req, res) => {
 // ── MY ORDERS API (customer-specific) ──
 app.get("/api/my-orders", (req, res) => {
     const customerId = req.query.customerId;
-    if (!customerId) return res.status(400).json({ success: false, message: "customerId required" });
-    const myOrders = orders.filter(o => o.customerId === customerId).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    const email = req.query.email ? String(req.query.email).toLowerCase() : "";
+    if (!customerId && !email) return res.status(400).json({ success: false, message: "customerId or email required" });
+    const myOrders = orders.filter(function (o) {
+        if (customerId && o.customerId === customerId) return true;
+        // Fallback: connect legacy orders (no customerId) by the same email.
+        if (email && o.customerEmail && String(o.customerEmail).toLowerCase() === email && !o.customerId) return true;
+        return false;
+    }).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     res.json({ success: true, orders: myOrders });
 });
 

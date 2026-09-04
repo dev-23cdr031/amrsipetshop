@@ -540,7 +540,7 @@
             list.style.display = "flex";
         }
         async function init() {
-            const user = requireLogin();
+            const user = (window.getCurrentCustomer && window.getCurrentCustomer()) || requireLogin();
             if (!user) return;
             updateCartCount();
 
@@ -564,7 +564,7 @@
             }
 
             try {
-                const res = await fetch("/api/my-orders?customerId=" + encodeURIComponent(customerId));
+                const res = await fetch("/api/my-orders?customerId=" + encodeURIComponent(customerId) + "&email=" + encodeURIComponent(user.email || ""));
                 const data = await res.json();
                 document.getElementById("loadingState").style.display = "none";
                 if (!res.ok || !data.success) {

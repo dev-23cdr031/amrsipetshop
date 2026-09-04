@@ -13,6 +13,26 @@
         window.location.href = "/login.html";
     };
 
+    // Returns the current user, guaranteeing a customerId (generates + persists
+    // it if missing). Fixes stale sessions created before customerId existed, so
+    // checkout and My Orders always have a stable id to match orders by.
+    window.getCurrentCustomer = function () {
+        var user = currentUser();
+        if (!user) return null;
+        if (!user.customerId) {
+            user.customerId = "cust_" + Date.now() + "_" + Math.random().toString(36).substr(2, 9);
+            try { localStorage.setItem("petshop_currentUser", JSON.stringify(user)); } catch (e) {}
+            try {
+                var users = JSON.parse(localStorage.getItem("petshop_users") || "[]");
+                for (var i = 0; i < users.length; i++) {
+                    if (users[i].email === user.email) { users[i] = user; break; }
+                }
+                localStorage.setItem("petshop_users", JSON.stringify(users));
+            } catch (e) {}
+        }
+        return user;
+    };
+
     function renderAuth() {
         const user = currentUser();
 

@@ -462,7 +462,7 @@
             const tax = Math.round(taxable * TAX_RATE);
             recalcShipping();
             const orderData = {
-                customerId: (JSON.parse(localStorage.getItem("petshop_currentUser") || "null") || {}).customerId || null,
+                customerId: ((window.getCurrentCustomer && window.getCurrentCustomer()) || {}).customerId || null,
                 customerName: document.getElementById("firstName").value.trim() + " " + document.getElementById("lastName").value.trim(),
                 customerEmail: document.getElementById("email").value.trim(),
                 customerPhone: document.getElementById("phone").value.trim(),
