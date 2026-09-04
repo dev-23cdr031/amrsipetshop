@@ -995,11 +995,13 @@ async function handleConfirmOrder() {
   try {
     // Server-authoritative checkout: stock, totals and order storage are all
     // handled by the server — no fake localStorage-only orders.
+    const currentUser = (typeof window.getCurrentCustomer === 'function' && window.getCurrentCustomer()) || {};
     const res = await fetch('/api/orders', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        customerEmail: '',
+        customerId: currentUser.customerId || null,
+        customerEmail: currentUser.email || '',
         paymentMethod: 'cod',
         items: currentCart.map(item => ({ id: item.id, quantity: item.quantity || 1 })),
         address: { name: name, phone: phone, address: address, landmark: '', city: city, state: state, pincode: pincode }

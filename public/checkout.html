@@ -461,11 +461,12 @@
             const taxable = Math.max(0, sub - discount);
             const tax = Math.round(taxable * TAX_RATE);
             recalcShipping();
+            const currentUser = (window.getCurrentCustomer && window.getCurrentCustomer()) || {};
             const orderData = {
-                customerId: ((window.getCurrentCustomer && window.getCurrentCustomer()) || {}).customerId || null,
+                customerId: currentUser.customerId || null,
                 customerName: document.getElementById("firstName").value.trim() + " " + document.getElementById("lastName").value.trim(),
-                customerEmail: document.getElementById("email").value.trim(),
-                customerPhone: document.getElementById("phone").value.trim(),
+                customerEmail: document.getElementById("email").value.trim() || currentUser.email || "",
+                customerPhone: document.getElementById("phone").value.trim() || currentUser.phone || "",
                 address: {
                     name: document.getElementById("firstName").value.trim() + " " + document.getElementById("lastName").value.trim(),
                     phone: document.getElementById("phone").value.trim(),
