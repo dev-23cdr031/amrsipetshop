@@ -93,13 +93,16 @@ function broadcast(event, payload, filterFn) {
     });
 }
 
-// Heartbeat keeps connections alive through proxies and detects dead clients
-setInterval(function () {
-    sseClients.slice().forEach(function (c) {
-        if (c.res.writableEnded) { removeSseClient(c); return; }
-        sseSend(c.res, "heartbeat", { t: Date.now() });
-    });
-}, 15000);
+// Heartbeat keeps connections alive through proxies and detects dead clients.
+// (Skipped on Vercel: serverless functions are ephemeral, so no long-lived timer.)
+if (!process.env.VERCEL) {
+    setInterval(function () {
+        sseClients.slice().forEach(function (c) {
+            if (c.res.writableEnded) { removeSseClient(c); return; }
+            sseSend(c.res, "heartbeat", { t: Date.now() });
+        });
+    }, 15000);
+}
 
 function removeSseClient(c) {
     const i = sseClients.indexOf(c);
@@ -181,6 +184,11 @@ app.post("/api/promo/validate", (req, res) => {
 
 // ── REALTIME SSE ENDPOINT ──
 app.get("/api/events", (req, res) => {
+    // Vercel's serverless model does not support long-lived SSE connections.
+    if (process.env.VERCEL) {
+        res.status(204).end();
+        return;
+    }
     const channel = (req.query.channel || "global").toString();
     const orderId = req.query.orderId ? req.query.orderId.toString() : null;
 
@@ -536,6 +544,12 @@ app.get("/", (req, res) => res.sendFile(path.join(__dirname, "public", "index.ht
 
 async function startServer() {
     await hydrateFromSupabase();
+    if (process.env.VERCEL) {
+        // Vercel zero-config server: the app is exported below and Vercel
+        // routes requests to it. No local port bind is needed (or allowed).
+        console.log("Running on Vercel — Express app exported, not listening on a local port.");
+        return;
+    }
     app.listen(PORT, () => {
     console.log("==============================");
     console.log("AM SRI PETSHOP SERVER");
@@ -547,4 +561,7 @@ async function startServer() {
     });
 }
 startServer();
+
+// Vercel default export — required for zero-config Express deployment.
+module.exports = app;
 

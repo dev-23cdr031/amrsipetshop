@@ -13,6 +13,7 @@
         this.handlers = {};
         this.es = null;
         this.reconnectTimer = null;
+        this.reconnectAttempts = 0;
         this.connected = false;
         this.onStatus = options.onStatus || function () {};
     }
@@ -37,6 +38,7 @@
 
         this.es.onopen = function () {
             self.connected = true;
+            self.reconnectAttempts = 0;
             self.onStatus(true, "connected");
         };
 
@@ -44,7 +46,13 @@
             self.connected = false;
             self.onStatus(false, "disconnected");
             if (self.es) { try { self.es.close(); } catch (e) {} self.es = null; }
-            // Auto-reconnect with backoff (SSE reconnection is unreliable cross-browser)
+            // Auto-reconnect with a capped number of attempts (e.g. Vercel
+            // serverless does not support long-lived SSE connections).
+            self.reconnectAttempts = (self.reconnectAttempts || 0) + 1;
+            if (self.reconnectAttempts > 3) {
+                self.onStatus(false, "realtime-unavailable");
+                return;
+            }
             if (self.reconnectTimer) clearTimeout(self.reconnectTimer);
             self.reconnectTimer = setTimeout(function () { self.connect(); }, 3000);
         };
