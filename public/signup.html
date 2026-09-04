@@ -425,7 +425,7 @@
         }
 
         // Form submission
-        document.getElementById('signupForm').addEventListener('submit', function(e) {
+        document.getElementById('signupForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
             const firstName = document.getElementById('firstName').value;
@@ -440,39 +440,36 @@
             errorMessage.style.display = 'none';
             successMessage.style.display = 'none';
 
-            // Check if email already exists
-            const registeredUsers = JSON.parse(localStorage.getItem('petshop_users') || '[]');
-            const existingUser = registeredUsers.find(u => u.email === email);
-
-            if (existingUser) {
-                document.getElementById('errorText').textContent = 'An account with this email already exists';
+            try {
+                const res = await fetch('/api/signup', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ firstName, lastName, email, phone, password })
+                });
+                
+                const data = await res.json();
+                
+                if (!res.ok || !data.success) {
+                    document.getElementById('errorText').textContent = data.message || 'Signup failed';
+                    errorMessage.style.display = 'block';
+                    return;
+                }
+                
+                // Store customer data and session token
+                localStorage.setItem('petshop_currentUser', JSON.stringify(data.customer));
+                localStorage.setItem('sessionToken', data.sessionToken);
+                
+                // Show success and redirect
+                successMessage.style.display = 'block';
+                
+                setTimeout(() => {
+                    window.location.href = '/products.html';
+                }, 1500);
+            } catch (error) {
+                console.error('Signup error:', error);
+                document.getElementById('errorText').textContent = 'Network error. Please try again.';
                 errorMessage.style.display = 'block';
-                return;
             }
-
-            // Create new user
-            const newUser = {
-                id: Date.now(),
-                customerId: 'cust_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
-                firstName,
-                lastName,
-                email,
-                phone,
-                password,
-                isAdmin: email === 'devdharrshans.23csd@kongu.edu',
-                createdAt: new Date().toISOString()
-            };
-
-            // Add to registered users
-            registeredUsers.push(newUser);
-            localStorage.setItem('petshop_users', JSON.stringify(registeredUsers));
-
-            // Show success and redirect
-            successMessage.style.display = 'block';
-            
-            setTimeout(() => {
-                window.location.href = '/login.html';
-            }, 2000);
         });
     </script>
 </body>

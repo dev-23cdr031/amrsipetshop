@@ -326,7 +326,7 @@
         }
 
         // Form submission
-        document.getElementById('loginForm').addEventListener('submit', function(e) {
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
             const email = document.getElementById('loginEmail').value;
@@ -338,24 +338,24 @@
             errorMessage.style.display = 'none';
             successMessage.style.display = 'none';
 
-            // Get registered users from localStorage
-            const registeredUsers = JSON.parse(localStorage.getItem('petshop_users') || '[]');
-            const user = registeredUsers.find(u => u.email === email && u.password === password);
-
-            if (user) {
-                // Backfill customerId for existing users (migration)
-                if (!user.customerId) {
-                    user.customerId = 'cust_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-                    const registeredUsers = JSON.parse(localStorage.getItem('petshop_users') || '[]');
-                    const idx = registeredUsers.findIndex(u => u.email === user.email);
-                    if (idx !== -1) {
-                        registeredUsers[idx] = user;
-                        localStorage.setItem('petshop_users', JSON.stringify(registeredUsers));
-                    }
+            try {
+                const res = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                const data = await res.json();
+                
+                if (!res.ok || !data.success) {
+                    document.getElementById('errorText').textContent = data.message || 'Invalid email or password';
+                    errorMessage.style.display = 'block';
+                    return;
                 }
                 
-                // Store current user session
-                localStorage.setItem('petshop_currentUser', JSON.stringify(user));
+                // Store customer data and session token
+                localStorage.setItem('petshop_currentUser', JSON.stringify(data.customer));
+                localStorage.setItem('sessionToken', data.sessionToken);
                 
                 // Show success message
                 successMessage.style.display = 'block';
@@ -373,9 +373,10 @@
                     } else {
                         window.location.href = '/products.html';
                     }
-                }, 1500);
-            } else {
-                // Show error message
+                }, 1000);
+            } catch (error) {
+                console.error('Login error:', error);
+                document.getElementById('errorText').textContent = 'Network error. Please try again.';
                 errorMessage.style.display = 'block';
             }
         });

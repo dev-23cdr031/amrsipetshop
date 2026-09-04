@@ -462,6 +462,7 @@
             const tax = Math.round(taxable * TAX_RATE);
             recalcShipping();
             const currentUser = (window.getCurrentCustomer && window.getCurrentCustomer()) || {};
+            const sessionToken = localStorage.getItem("sessionToken");
             const orderData = {
                 customerId: currentUser.customerId || null,
                 customerName: document.getElementById("firstName").value.trim() + " " + document.getElementById("lastName").value.trim(),
@@ -483,7 +484,9 @@
             };
 
             try {
-                const res = await fetch("/api/orders", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(orderData) });
+                const headers = { "Content-Type": "application/json" };
+                if (sessionToken) headers["Authorization"] = "Bearer " + sessionToken;
+                const res = await fetch("/api/orders", { method: "POST", headers: headers, body: JSON.stringify(orderData) });
                 const data = await res.json();
                 if (!res.ok || !data.success) { toast(data.message || "Could not place order", "error"); btn.disabled = false; btn.innerHTML = '<i class="bi bi-bag-check"></i> Place Order'; return; }
                 // Order confirmed by the server — only NOW clear the cart, plus the

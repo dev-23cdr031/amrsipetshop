@@ -1,4 +1,4 @@
-const express = require("express");
+﻿const express = require("express");
 const path = require("path");
 const crypto = require("crypto");
 
@@ -24,7 +24,7 @@ function mergeProducts() {
         const ov = productOverrides[p.id];
         return ov ? Object.assign({}, p, ov) : Object.assign({}, p);
     });
-    // Products added by the admin exist only in the overrides — append them so
+    // Products added by the admin exist only in the overrides â€” append them so
     // they are served by the API and appear in the shop like any other product.
     Object.keys(productOverrides).forEach(function (key) {
         const id = Number(key);
@@ -38,7 +38,7 @@ function persistOverrides() { store.saveOverrides(productOverrides); products = 
 function persistOrders() { store.saveOrders(orders); }
 function findProduct(id) { return products.find((p) => Number(p.id) === Number(id)); }
 
-// ── Supabase persistence (primary) with local JSON fallback ──
+// â”€â”€ Supabase persistence (primary) with local JSON fallback â”€â”€
 async function persistOrderToSupabase(order) {
     try { await supabase.insertOrder(order); }
     catch (e) { console.error("Supabase insertOrder failed:", e.message); persistOrders(); }
@@ -75,8 +75,8 @@ async function hydrateFromSupabase() {
 
 console.log("PRODUCT COUNT:", products.length);
 
-// ── Realtime (Server-Sent Events) infrastructure ──
-// Lightweight pub/sub. No external dependencies — Express handles SSE natively.
+// â”€â”€ Realtime (Server-Sent Events) infrastructure â”€â”€
+// Lightweight pub/sub. No external dependencies â€” Express handles SSE natively.
 const sseClients = []; // { res, channel, orderId, id }
 
 function sseSend(res, event, data) {
@@ -113,7 +113,7 @@ function removeSseClient(c) {
 app.use(express.json({ limit: "1mb" }));
 app.use(express.static(path.join(__dirname, "public")));
 
-// ── PRODUCTS API ──
+// â”€â”€ PRODUCTS API â”€â”€
 app.get("/api/products", (req, res) => {
     const includeArchived = req.query.includeArchived === "1" || req.query.includeArchived === "true";
     res.json(includeArchived ? products : products.filter((p) => !p.archived));
@@ -166,7 +166,7 @@ app.delete("/api/products/:id", (req, res) => {
     res.json({ success: true, message: "Product archived" });
 });
 
-// ── PROMO CODE API ──
+// â”€â”€ PROMO CODE API â”€â”€
 app.post("/api/promo/validate", (req, res) => {
     const { code, subtotal } = req.body || {};
     if (!code) return res.status(400).json({ success: false, message: "Coupon code is required." });
@@ -182,7 +182,7 @@ app.post("/api/promo/validate", (req, res) => {
     res.json({ success: true, code: promo.code, description: promo.description, discount: Math.round(discount), type: promo.type });
 });
 
-// ── REALTIME SSE ENDPOINT ──
+// â”€â”€ REALTIME SSE ENDPOINT â”€â”€
 app.get("/api/events", (req, res) => {
     // Vercel's serverless model does not support long-lived SSE connections.
     if (process.env.VERCEL) {
@@ -212,7 +212,7 @@ app.get("/api/events", (req, res) => {
     req.on("error", cleanup);
 });
 
-// ── ORDERS API ──
+// â”€â”€ ORDERS API â”€â”€
 const VALID_STATUSES = ["pending", "processing", "shipped", "delivered", "cancelled"];
 
 function estimateDelivery(method) {
@@ -347,7 +347,7 @@ app.post("/api/orders", async (req, res) => {
     await persistOrderToSupabase(order);
     console.log("Order received:", order.orderId, "total Rs" + order.total, "status=processing");
 
-    // ── Realtime broadcast ──
+    // â”€â”€ Realtime broadcast â”€â”€
     // Notify all ADMIN dashboards of a brand-new order
     broadcast("order:new", { order: order }, function (c) { return c.channel === "admin"; });
     // Notify the customer's tracking page (if open) of the initial status
@@ -383,7 +383,7 @@ app.patch("/api/orders/:id/status", async (req, res) => {
     if (status === "shipped" && !order.trackingNumber) order.trackingNumber = "TRK" + Date.now().toString().slice(-9);
     await updateOrderInSupabase(order.orderId, { status: order.status, trackingNumber: order.trackingNumber });
 
-    // ── Realtime broadcast ──
+    // â”€â”€ Realtime broadcast â”€â”€
     // Customer's tracking page for this order
     broadcast("order:status", { orderId: order.orderId, status: order.status, trackingNumber: order.trackingNumber, order: order }, function (c) {
         return c.channel === "order" && c.orderId === order.orderId;
@@ -405,7 +405,7 @@ app.delete("/api/orders/:id", async (req, res) => {
 });
 
 
-// ── OFFLINE ORDER API (admin records walk-in / in-store sales) ──
+// â”€â”€ OFFLINE ORDER API (admin records walk-in / in-store sales) â”€â”€
 app.post("/api/orders/offline", async (req, res) => {
     const body = req.body || {};
     const customerName = String(body.customerName || "").trim();
@@ -469,7 +469,7 @@ app.post("/api/orders/offline", async (req, res) => {
     res.json({ success: true, message: "Offline order saved", order });
 });
 
-// ── MY ORDERS API (customer-specific) ──
+// â”€â”€ MY ORDERS API (customer-specific) â”€â”€
 app.get("/api/my-orders", (req, res) => {
     const customerId = req.query.customerId;
     const email = req.query.email ? String(req.query.email).toLowerCase() : "";
@@ -483,7 +483,7 @@ app.get("/api/my-orders", (req, res) => {
     res.json({ success: true, orders: myOrders });
 });
 
-// ── DASHBOARD STATS / ANALYTICS API ──
+// â”€â”€ DASHBOARD STATS / ANALYTICS API â”€â”€
 app.get("/api/stats", (req, res) => {
     const totalRevenue = orders.filter((o) => o.status !== "cancelled").reduce((s, o) => s + (o.total || 0), 0);
     const statusCounts = VALID_STATUSES.reduce((acc, st) => { acc[st] = orders.filter((o) => o.status === st).length; return acc; }, {});
@@ -526,7 +526,7 @@ app.get("/api/stats", (req, res) => {
     });
 });
 
-// ── CONTACT FORM API ──
+// â”€â”€ CONTACT FORM API â”€â”€
 app.post("/api/contact", async (req, res) => {
     const { name, phone, email, subject, message } = req.body || {};
     if (!name || !phone || !email || !subject || !message) {
@@ -545,7 +545,172 @@ app.post("/api/contact", async (req, res) => {
 
 app.get("/api/contact", (req, res) => res.json(contactMessages.slice().reverse()));
 
-// ── Home ──
+// â”€â”€ AUTHENTICATION ENDPOINTS â”€â”€
+
+// POST /api/signup - Create new customer account
+app.post("/api/signup", async (req, res) => {
+    try {
+        const { firstName, lastName, email, phone, password } = req.body;
+        
+        if (!firstName || !lastName || !email || !phone || !password) {
+            return res.status(400).json({ success: false, message: "All fields are required" });
+        }
+        
+        // Check if email already exists
+        const existing = await supabase.sb("/customers?email=eq." + encodeURIComponent(email) + "&select=id");
+        if (existing && existing.length > 0) {
+            return res.status(400).json({ success: false, message: "Email already registered" });
+        }
+        
+        // Create customer
+        const customer = {
+            first_name: firstName,
+            last_name: lastName,
+            email: email,
+            phone: phone,
+            password: password,
+            is_admin: email === "devdharrshans.23csd@kongu.edu"
+        };
+        
+        const created = await supabase.sb("/customers", {
+            method: "POST",
+            headers: { "Prefer": "return=representation" },
+            body: JSON.stringify(customer)
+        });
+        
+        if (!created || !created[0]) {
+            return res.status(500).json({ success: false, message: "Failed to create account" });
+        }
+        
+        const customerId = created[0].id;
+        
+        // Create session
+        const session = await createSession(customerId);
+        
+        res.json({
+            success: true,
+            customer: {
+                id: customerId,
+                firstName,
+                lastName,
+                email,
+                phone
+            },
+            sessionToken: session.token
+        });
+    } catch (error) {
+        console.error("Signup error:", error);
+        res.status(500).json({ success: false, message: "Server error" });
+    }
+});
+
+// POST /api/login - Authenticate customer
+app.post("/api/login", async (req, res) => {
+    try {
+        const { email, password } = req.body;
+        
+        if (!email || !password) {
+            return res.status(400).json({ success: false, message: "Email and password required" });
+        }
+        
+        // Find customer
+        const customers = await supabase.sb("/customers?email=eq." + encodeURIComponent(email) + "&select=*");
+        
+        if (!customers || customers.length === 0) {
+            return res.status(401).json({ success: false, message: "Invalid credentials" });
+        }
+        
+        const customer = customers[0];
+        
+        if (customer.password !== password) {
+            return res.status(401).json({ success: false, message: "Invalid credentials" });
+        }
+        
+        // Create session
+        const session = await createSession(customer.id);
+        
+        res.json({
+            success: true,
+            customer: {
+                id: customer.id,
+                firstName: customer.first_name,
+                lastName: customer.last_name,
+                email: customer.email,
+                phone: customer.phone,
+                customerId: customer.id
+            },
+            sessionToken: session.token
+        });
+    } catch (error) {
+        console.error("Login error:", error);
+        res.status(500).json({ success: false, message: "Server error" });
+    }
+});
+
+// POST /api/logout - Invalidate session
+app.post("/api/logout", async (req, res) => {
+    try {
+        const token = req.headers.authorization?.replace("Bearer ", "");
+        
+        if (token) {
+            await supabase.sb("/sessions?token=eq." + encodeURIComponent(token), { method: "DELETE" });
+        }
+        
+        res.json({ success: true });
+    } catch (error) {
+        console.error("Logout error:", error);
+        res.status(500).json({ success: false, message: "Server error" });
+    }
+});
+
+// Helper: Create session
+async function createSession(customerId) {
+    const session = {
+        customer_id: customerId,
+        expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+    };
+    
+    const created = await supabase.sb("/sessions", {
+        method: "POST",
+        headers: { "Prefer": "return=representation" },
+        body: JSON.stringify(session)
+    });
+    
+    return created[0];
+}
+
+// Helper: Validate session
+async function validateSession(token) {
+    if (!token) return null;
+    
+    const sessions = await supabase.sb("/sessions?token=eq." + encodeURIComponent(token) + "&select=*,customers(id,first_name,last_name,email,phone)");
+    
+    if (!sessions || sessions.length === 0) return null;
+    
+    const session = sessions[0];
+    
+    if (new Date(session.expires_at) < new Date()) {
+        await supabase.sb("/sessions?token=eq." + encodeURIComponent(token), { method: "DELETE" });
+        return null;
+    }
+    
+    return session.customers;
+}
+
+// Middleware: Require authentication
+async function requireAuth(req, res, next) {
+    const token = req.headers.authorization?.replace("Bearer ", "");
+    const customer = await validateSession(token);
+    
+    if (!customer) {
+        return res.status(401).json({ success: false, message: "Authentication required" });
+    }
+    
+    req.customer = customer;
+    next();
+}
+
+// â”€â”€ Home â”€â”€
 app.get("/", (req, res) => res.sendFile(path.join(__dirname, "public", "index.html")));
 
 async function startServer() {
@@ -553,7 +718,7 @@ async function startServer() {
     if (process.env.VERCEL) {
         // Vercel zero-config server: the app is exported below and Vercel
         // routes requests to it. No local port bind is needed (or allowed).
-        console.log("Running on Vercel — Express app exported, not listening on a local port.");
+        console.log("Running on Vercel â€” Express app exported, not listening on a local port.");
         return;
     }
     app.listen(PORT, () => {
@@ -568,6 +733,7 @@ async function startServer() {
 }
 startServer();
 
-// Vercel default export — required for zero-config Express deployment.
+// Vercel default export â€” required for zero-config Express deployment.
 module.exports = app;
+
 

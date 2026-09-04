@@ -564,7 +564,10 @@
             }
 
             try {
-                const res = await fetch("/api/my-orders?customerId=" + encodeURIComponent(customerId) + "&email=" + encodeURIComponent(user.email || ""));
+                const headers = {};
+                const sessionToken = localStorage.getItem("sessionToken");
+                if (sessionToken) headers["Authorization"] = "Bearer " + sessionToken;
+                const res = await fetch("/api/my-orders?customerId=" + encodeURIComponent(customerId) + "&email=" + encodeURIComponent(user.email || ""), { headers: headers });
                 const data = await res.json();
                 document.getElementById("loadingState").style.display = "none";
                 if (!res.ok || !data.success) {

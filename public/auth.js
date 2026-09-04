@@ -7,9 +7,25 @@
         catch (e) { return null; }
     }
 
+    function getSessionToken() {
+        return localStorage.getItem("sessionToken");
+    }
+
     // Clears the session and returns to the login screen.
-    window.logout = function () {
+    window.logout = async function () {
+        const token = getSessionToken();
+        if (token) {
+            try {
+                await fetch("/api/logout", {
+                    method: "POST",
+                    headers: { "Authorization": "Bearer " + token }
+                });
+            } catch (e) {
+                console.error("Logout error:", e);
+            }
+        }
         localStorage.removeItem("petshop_currentUser");
+        localStorage.removeItem("sessionToken");
         window.location.href = "/login.html";
     };
 

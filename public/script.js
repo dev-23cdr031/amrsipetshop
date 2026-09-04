@@ -996,9 +996,13 @@ async function handleConfirmOrder() {
     // Server-authoritative checkout: stock, totals and order storage are all
     // handled by the server — no fake localStorage-only orders.
     const currentUser = (typeof window.getCurrentCustomer === 'function' && window.getCurrentCustomer()) || {};
+    const sessionToken = localStorage.getItem('sessionToken');
+    const headers = { 'Content-Type': 'application/json' };
+    if (sessionToken) headers['Authorization'] = 'Bearer ' + sessionToken;
+    
     const res = await fetch('/api/orders', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: headers,
       body: JSON.stringify({
         customerId: currentUser.customerId || null,
         customerEmail: currentUser.email || '',

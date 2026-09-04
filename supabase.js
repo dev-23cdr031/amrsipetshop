@@ -158,6 +158,7 @@ module.exports = {
     insertMessage,
     snakeToCamelOrder,
     camelToSnakeOrder,
+    sb,
     SUPABASE_URL,
     SUPABASE_KEY
 };
