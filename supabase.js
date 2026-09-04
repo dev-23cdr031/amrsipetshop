@@ -2,9 +2,6 @@
 // Uses the legacy service_role JWT from .env (server-side only) to read/write
 // orders and contact messages. Keeps the existing camelCase shape in memory
 // while mapping to the snake_case columns defined in supabase/schema.sql.
-//
-// The live `orders` table has no `customer_id` / `source` column, so those two
-// fields are stashed inside the `address` JSONB and restored on read.
 
 const fs = require("fs");
 const path = require("path");
@@ -53,13 +50,18 @@ async function sb(pathname, options) {
 
 function camelToSnakeOrder(o) {
     const addr = o.address && typeof o.address === "object" ? o.address : {};
+    // Remove customerId and source from address (they're now real columns)
+    const cleanAddr = Object.assign({}, addr);
+    delete cleanAddr.customerId;
+    delete cleanAddr.source;
     return {
         order_id: o.orderId,
+        customer_id: o.customerId || null,
         customer_name: o.customerName || "",
         customer_email: o.customerEmail || "",
         customer_phone: o.customerPhone || "",
         shipping_address: o.shippingAddress || "",
-        address: Object.assign({}, addr, { customerId: o.customerId || null, source: o.source || "online" }),
+        address: Object.keys(cleanAddr).length ? cleanAddr : null,
         items: o.items || [],
         subtotal: o.subtotal || 0,
         shipping: o.shipping || 0,
@@ -81,21 +83,14 @@ function camelToSnakeOrder(o) {
 }
 
 function snakeToCamelOrder(r) {
-    const addr = r.address && typeof r.address === "object" ? r.address : {};
-    const customerId = addr.customerId != null ? addr.customerId : null;
-    const source = addr.source || "online";
-    const cleanAddr = Object.assign({}, addr);
-    delete cleanAddr.customerId;
-    delete cleanAddr.source;
     return {
         orderId: r.order_id,
-        customerId: customerId,
-        source: source,
+        customerId: r.customer_id || null,
         customerName: r.customer_name,
         customerEmail: r.customer_email,
         customerPhone: r.customer_phone,
         shippingAddress: r.shipping_address,
-        address: cleanAddr,
+        address: r.address || {},
         items: r.items || [],
         subtotal: Number(r.subtotal) || 0,
         shipping: Number(r.shipping) || 0,
