@@ -681,11 +681,31 @@ app.post("/api/contact", async (req, res) => {
         createdAt: new Date().toISOString()
     };
     contactMessages.push(entry);
-    await persistMessageToSupabase(entry);
+
+    // Persist to Supabase (primary) — fall back to local if it fails
+    try {
+        await supabase.insertMessage(entry);
+        console.log("Contact message saved to Supabase:", entry.id);
+    } catch (e) {
+        console.error("Supabase insertMessage failed, message kept in local memory only:", e.message);
+    }
+
     res.json({ success: true, message: "Message received successfully.", id: entry.id });
 });
 
-app.get("/api/contact", (req, res) => res.json(contactMessages.slice().reverse()));
+app.get("/api/contact", async (req, res) => {
+    try {
+        const supabaseMessages = await supabase.fetchMessages();
+        // If Supabase returns data, use it; otherwise fall back to local
+        if (supabaseMessages && supabaseMessages.length > 0) {
+            contactMessages = supabaseMessages;
+        }
+        // If both are empty, contactMessages stays as-is (local memory)
+    } catch (e) {
+        console.error("Supabase fetchMessages failed in /api/contact, using local messages:", e.message);
+    }
+    res.json(contactMessages.slice().reverse());
+});
 
 // â”€â”€ AUTHENTICATION ENDPOINTS â”€â”€
 
