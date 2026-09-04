@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Confirmed | AM SRI Petshop & Aquarium</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="ecommerce.css">
+</head>
+<body class="eco-page">
+    <nav class="navbar navbar-expand-lg shop-navbar">
+        <div class="container-fluid p-0">
+            <a class="navbar-brand" href="/"><img src="/images/logo.jpeg" alt="AM SRI Petshop" class="shop-logo"></a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navConf"><i class="bi bi-list fs-3 text-light"></i></button>
+            <div class="collapse navbar-collapse justify-content-end" id="navConf">
+                <ul class="navbar-nav align-items-center">
+                    <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/products.html">Shop</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/about.html">About</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/contact.html">Contact</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/my-orders.html"><i class="bi bi-receipt"></i> My Orders</a></li>
+                    <li class="nav-item" data-auth-nav></li>
+                    <li class="nav-item"><a class="nav-link" href="/cart.html"><i class="bi bi-bag"></i></a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="eco-shell">
+        <div id="confirmView" style="display:none;">
+            <div class="confirm-wrap">
+                <div class="confirm-icon"><i class="bi bi-check-lg"></i></div>
+                <h1 class="confirm-title">Order Confirmed!</h1>
+                <p class="confirm-sub">Thank you for your order. A confirmation has been sent to your email. We will notify you when your items ship.</p>
+                <div class="confirm-orderid"><i class="bi bi-receipt"></i> <span id="confOrderId">#AMS00000000</span></div>
+
+                <div class="eco-card confirm-card">
+                    <h3>Order Summary</h3>
+                    <div class="confirm-meta">
+                        <div class="confirm-meta-item"><span>Order Date</span><strong id="confDate">-</strong></div>
+                        <div class="confirm-meta-item"><span>Estimated Delivery</span><strong id="confEta">-</strong></div>
+                        <div class="confirm-meta-item"><span>Payment Method</span><strong id="confPay">-</strong></div>
+                        <div class="confirm-meta-item"><span>Total Paid</span><strong id="confTotal" style="color:var(--eco-red-bright);">Rs0</strong></div>
+                    </div>
+                    <div class="co-review-items" id="confItems"></div>
+                </div>
+
+                <div class="eco-card confirm-card confirm-address-card">
+                    <div class="confirm-card-heading"><h3>Delivery Address</h3><i class="bi bi-geo-alt"></i></div>
+                    <address id="confAddress" class="confirm-address">Loading delivery details…</address>
+                </div>
+
+                <div class="eco-card confirm-card">
+                    <div class="confirm-card-heading"><h3>Billing &amp; Payment</h3><i class="bi bi-credit-card-2-front"></i></div>
+                    <address id="confBilling" class="confirm-address">-</address>
+                    <div id="confPaymentNote" style="margin-top:12px;padding:12px 14px;border-radius:10px;background:rgba(0,0,0,0.25);color:var(--eco-muted);font-size:0.85rem;"></div>
+                </div>
+
+
+                <div class="eco-card confirm-card">
+                    <h3>Track Your Order</h3>
+                    <div class="track-timeline" id="trackTimeline"></div>
+                </div>
+
+                <div class="eco-card confirm-card">
+                    <h3>Order Notifications</h3>
+                    <p style="color:var(--eco-muted);font-size:0.8rem;margin:0 0 14px;"><i class="bi bi-bell" style="color:var(--eco-red-bright);"></i> Live updates about this order appear here in real time — placed, packed, shipped and delivered.</p>
+                    <div class="notif-feed" id="notifFeed"></div>
+                </div>
+
+
+                <div class="confirm-actions">
+                    <a href="/products.html" class="eco-btn eco-btn-primary"><i class="bi bi-bag-heart"></i> Continue Shopping</a>
+                    <button class="eco-btn eco-btn-ghost" onclick="printOrder()"><i class="bi bi-printer"></i> Print Receipt</button>
+                </div>
+
+                <div id="cancelArea" style="margin-top:18px;display:none;">
+                    <div id="cancelIdle">
+                        <button class="eco-btn eco-btn-danger" onclick="askCancel()"><i class="bi bi-x-circle"></i> Cancel Order</button>
+                        <p style="color:var(--eco-muted);font-size:0.78rem;margin:10px 0 0;"><i class="bi bi-info-circle"></i> You can cancel while your order is being processed. Items are restocked immediately.</p>
+                    </div>
+                    <div id="cancelConfirm" class="cancel-confirm" style="display:none;">
+                        <span><i class="bi bi-exclamation-triangle"></i> Cancel this order? This cannot be undone.</span>
+                        <span style="flex:1;"></span>
+                        <button class="eco-btn eco-btn-ghost" onclick="keepOrder()"><i class="bi bi-arrow-counterclockwise"></i> Keep Order</button>
+                        <button class="eco-btn eco-btn-danger" id="confirmCancelBtn" onclick="confirmCancel()"><i class="bi bi-x-circle"></i> Yes, Cancel</button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div id="confirmError" style="display:none;">
+            <div class="eco-empty">
+                <div class="eco-empty-icon"><i class="bi bi-exclamation-circle"></i></div>
+                <h3>Order not found</h3>
+                <p>We could not locate this order. It may have been placed on another device, or the link is incorrect.</p>
+                <a href="/products.html" class="eco-btn eco-btn-primary"><i class="bi bi-bag-heart"></i> Start Shopping</a>
+            </div>
+        </div>
+
+        <div id="confirmLoading" style="text-align:center;padding:80px 24px;">
+            <div class="eco-skeleton" style="width:120px;height:120px;border-radius:50%;margin:0 auto 20px;"></div>
+            <div class="eco-skeleton" style="width:240px;height:28px;margin:0 auto 14px;"></div>
+            <div class="eco-skeleton" style="width:300px;height:16px;margin:0 auto;"></div>
+        </div>
+    </div>
+
+    <div class="eco-toast-wrap" id="toastWrap"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/auth.js"></script>
+    <script src="/realtime.js"></script>
+    <script>
+        let orderRealtime = null;
+        let orderId = null;
+        let currentOrder = null;
+        const PAY_LABELS = { cod: "Cash on Delivery", upi: "UPI", card: "Card" };
+
+        function fmt(n) { return "Rs" + Math.round(n).toLocaleString("en-IN"); }
+        function toast(msg, type) {
+            type = type || "info";
+            const wrap = document.getElementById("toastWrap");
+            const icons = { success: "bi-check-circle-fill", error: "bi-x-circle-fill", info: "bi-info-circle-fill" };
+            const el = document.createElement("div");
+            el.className = "eco-toast " + type;
+            el.innerHTML = '<i class="bi ' + icons[type] + '"></i><span>' + msg + '</span>';
+            wrap.appendChild(el);
+            requestAnimationFrame(() => el.classList.add("show"));
+            setTimeout(() => { el.classList.remove("show"); setTimeout(() => el.remove(), 400); }, 3200);
+        }
+        function escapeHtml(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"); }
+
+        const STATUS_FLOW = ["pending", "processing", "shipped", "delivered"];
+        const STATUS_LABELS = { pending: "Order Placed", processing: "Preparing Your Order", shipped: "On the Way", delivered: "Delivered", cancelled: "Cancelled" };
+        const STATUS_ICONS = { pending: "bi-receipt", processing: "bi-box-seam", shipped: "bi-truck", delivered: "bi-house-check", cancelled: "bi-x-circle" };
+
+        function buildTimeline(status) {
+            status = String(status || "processing").toLowerCase();
+            if (status === "cancelled") {
+                return '<div class="track-step current"><div class="track-dot"><i class="bi bi-x-circle"></i></div><div class="track-body"><strong>Order Cancelled</strong><span>This order was cancelled and items restocked.</span></div></div>';
+            }
+            let html = "";
+            const currentIdx = STATUS_FLOW.indexOf(status);
+            STATUS_FLOW.forEach(function (st, i) {
+                const cls = i < currentIdx ? "done" : (i === currentIdx ? "current" : "");
+                const sub = st === "pending" ? "We received your order" : st === "processing" ? "Packing your items with care" : st === "shipped" ? "Out for delivery to your address" : "Handed over to you";
+                html += '<div class="track-step ' + cls + '"><div class="track-dot"><i class="bi ' + STATUS_ICONS[st] + '"></i></div><div class="track-body"><strong>' + STATUS_LABELS[st] + '</strong><span>' + sub + '</span></div></div>';
+            });
+            return html;
+        }
+
+        async function init() {
+            const params = new URLSearchParams(window.location.search);
+            orderId = params.get("orderId");
+
+            if (!orderId) {
+                const last = JSON.parse(sessionStorage.getItem("last_order") || "null");
+                if (last && last.orderId) orderId = last.orderId;
+            }
+            if (!orderId) { showNotFound(); return; }
+            try {
+                const res = await fetch("/api/orders/" + orderId);
+                if (!res.ok) { showNotFound(); return; }
+                const order = await res.json();
+                currentOrder = order;
+                renderOrder(order);
+
+                
+                // Initialize realtime connection for this order
+                orderRealtime = new Realtime({ channel: "order", orderId: orderId });
+                orderRealtime.connect();
+                
+                // Listen for status updates
+                orderRealtime.on("order:status", function(payload) {
+                    if (payload.orderId === orderId) {
+                        order.status = String(payload.status || "processing").toLowerCase();
+                        if (payload.trackingNumber) {
+                            order.trackingNumber = payload.trackingNumber;
+                        }
+                        // Update the timeline with new status
+                        document.getElementById("trackTimeline").innerHTML = buildTimeline(order.status);
+                        if (order.trackingNumber) {
+                            document.getElementById("trackTimeline").insertAdjacentHTML("beforeend", '<div style="margin-top:8px;padding:12px 14px;border-radius:10px;background:rgba(0,0,0,0.25);color:var(--eco-muted);font-size:0.85rem;"><i class="bi bi-upc-scan" style="color:var(--eco-red-bright);"></i> Tracking number: <strong style="color:var(--eco-text);">' + order.trackingNumber + '</strong></div>');
+                        }
+                        toast(`Order status updated: ${order.status}`, "success");
+                        if (currentOrder) currentOrder.status = order.status;
+                        updateCancelArea(order.status);
+                        if (order.status === "cancelled") pushNotif({ icon: "bi-x-circle-fill", kind: "cancel", title: "Order cancelled", text: "Your order was cancelled and the items were restocked." });
+                        else if (order.status === "shipped") pushNotif({ icon: "bi-truck", kind: "done", title: "Order shipped", text: "Your order is on its way" + (order.trackingNumber ? " — tracking " + order.trackingNumber : "") + "." });
+                        else if (order.status === "delivered") pushNotif({ icon: "bi-house-check", kind: "done", title: "Order delivered", text: "Your order was delivered. Enjoy!" });
+                        else pushNotif({ icon: "bi-box-seam", title: "Status updated", text: "Your order is now: " + (STATUS_LABELS[order.status] || order.status) });
+                    }
+                });
+            } catch (e) { showNotFound(); }
+        }
+
+        function showNotFound() {
+            document.getElementById("confirmLoading").style.display = "none";
+            document.getElementById("confirmError").style.display = "block";
+        }
+
+        function renderOrder(order) {
+            document.getElementById("confirmLoading").style.display = "none";
+            document.getElementById("confirmView").style.display = "block";
+            document.getElementById("confOrderId").textContent = "#" + order.orderId;
+            document.getElementById("confDate").textContent = new Date(order.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+            document.getElementById("confEta").textContent = new Date(order.estimatedDelivery).toLocaleDateString("en-IN", { day: "numeric", month: "short" });
+            document.getElementById("confPay").textContent = PAY_LABELS[String(order.paymentMethod || "cod").toLowerCase()] || String(order.paymentMethod || "cod").toUpperCase();
+
+            document.getElementById("confTotal").textContent = fmt(order.total);
+            const itemsHtml = order.items.map(function (it) {
+                return '<div class="co-review-item"><img src="' + it.image + '" onerror="this.src=\'/images/logo.jpeg\'"><div class="co-ri-name">' + escapeHtml(it.name) + ' <span>x' + it.quantity + '</span></div><div class="co-ri-total">' + fmt(it.price * it.quantity) + '</div></div>';
+            }).join("");
+            document.getElementById("confItems").innerHTML = itemsHtml;
+            
+            // Add detailed cost breakdown as required
+            document.getElementById("confCostBreakdown")?.remove();
+            const costBreakdownHtml = `
+                <div id="confCostBreakdown" style="margin-top:20px;padding:16px;border-radius:12px;background:rgba(0,0,0,0.25);">
+                    <h4 style="color:var(--eco-text);font-size:0.95rem;margin:0 0 16px;">Cost Breakdown</h4>
+                    <div class="summary-line" style="display:flex;justify-content:space-between;margin-bottom:8px;">
+                        <span style="color:var(--eco-muted);">Items Subtotal</span>
+                        <strong>${fmt(order.subtotal)}</strong>
+                    </div>
+                    <div class="summary-line" style="display:flex;justify-content:space-between;margin-bottom:8px;">
+                        <span style="color:var(--eco-muted);">Standard Delivery Fee</span>
+                        <strong>${fmt(order.shipping == null ? 100 : order.shipping)}</strong>
+                    </div>
+                    ${order.discount > 0 ? `
+                    <div class="summary-line" style="display:flex;justify-content:space-between;margin-bottom:8px;">
+                        <span style="color:var(--eco-green);">Discount ${order.promoCode ? '(' + order.promoCode + ')' : ''}</span>
+                        <strong style="color:var(--eco-green);">-${fmt(order.discount)}</strong>
+                    </div>` : ''}
+                    <div class="summary-line" style="display:flex;justify-content:space-between;margin-bottom:8px;">
+                        <span style="color:var(--eco-muted);">Taxes</span>
+                        <strong>${fmt(order.tax)}</strong>
+                    </div>
+                    <div class="summary-total" style="display:flex;justify-content:space-between;margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.1);">
+                        <span style="color:var(--eco-text);font-weight:600;">Final Payable Amount</span>
+                        <span style="color:var(--eco-red-bright);font-weight:700;font-size:1.1rem;">${fmt(order.total)}</span>
+                    </div>
+                </div>
+            `;
+            document.getElementById("confItems").insertAdjacentHTML('afterend', costBreakdownHtml);
+            const address = order.address || {};
+            const addressLines = address.address
+                ? [address.name || order.customerName, address.address, address.landmark, [address.city, address.state].filter(Boolean).join(", ") + (address.pincode ? " – " + address.pincode : ""), address.phone ? "Phone: " + address.phone : ""].filter(Boolean)
+                : [order.customerName, order.shippingAddress, order.customerPhone ? "Phone: " + order.customerPhone : ""].filter(Boolean);
+            document.getElementById("confAddress").innerHTML = addressLines.map(escapeHtml).join("<br>");
+            
+            order.status = String(order.status || "processing").toLowerCase();
+            document.getElementById("trackTimeline").innerHTML = buildTimeline(order.status);
+            if (order.trackingNumber) {
+                document.getElementById("trackTimeline").insertAdjacentHTML("beforeend", '<div style="margin-top:8px;padding:12px 14px;border-radius:10px;background:rgba(0,0,0,0.25);color:var(--eco-muted);font-size:0.85rem;"><i class="bi bi-upc-scan" style="color:var(--eco-red-bright);"></i> Tracking number: <strong style="color:var(--eco-text);">' + order.trackingNumber + '</strong></div>');
+            }
+            // Billing & payment recap
+            const payMethod = String(order.paymentMethod || "cod").toLowerCase();
+            const billingEl = document.getElementById("confBilling");
+            if (order.billingSameAsShipping === false && order.billingAddress) {
+                const b = order.billingAddress;
+                billingEl.innerHTML = [b.address, b.landmark, [b.city, b.state].filter(Boolean).join(", ") + (b.pincode ? " - " + b.pincode : "")].filter(Boolean).map(escapeHtml).join("<br>");
+            } else {
+                billingEl.textContent = "Same as shipping address.";
+            }
+            let payNote = "<strong style='color:var(--eco-text);'>" + escapeHtml(PAY_LABELS[payMethod] || payMethod.toUpperCase()) + "</strong>";
+            if (order.paymentDetails && order.paymentDetails.type === "upi") {
+                payNote += " &mdash; payment request will be sent to " + escapeHtml(order.paymentDetails.upiId);
+            } else if (order.paymentDetails && order.paymentDetails.type === "card") {
+                payNote += " &mdash; " + escapeHtml(order.paymentDetails.brand) + " ending " + escapeHtml(order.paymentDetails.last4);
+            } else if (payMethod === "cod") {
+                payNote += " &mdash; keep " + fmt(order.total) + " ready at the time of delivery";
+            }
+            document.getElementById("confPaymentNote").innerHTML = payNote;
+
+            // Notification feed + cancellation availability
+            initNotifFeed(order);
+            updateCancelArea(order.status);
+            toast("Order loaded successfully", "success");
+
+        }
+
+        // ── Customer-side order cancellation ──
+        function updateCancelArea(status) {
+            const area = document.getElementById("cancelArea");
+            if (!area) return;
+            const cancellable = status === "pending" || status === "processing";
+            area.style.display = cancellable ? "block" : "none";
+            document.getElementById("cancelIdle").style.display = "block";
+            document.getElementById("cancelConfirm").style.display = "none";
+        }
+        function askCancel() {
+            document.getElementById("cancelIdle").style.display = "none";
+            document.getElementById("cancelConfirm").style.display = "flex";
+        }
+        function keepOrder() {
+            document.getElementById("cancelIdle").style.display = "block";
+            document.getElementById("cancelConfirm").style.display = "none";
+        }
+        async function confirmCancel() {
+            if (!orderId) return;
+            const btn = document.getElementById("confirmCancelBtn");
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Cancelling...';
+            try {
+                const res = await fetch("/api/orders/" + orderId + "/status", {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ status: "cancelled" })
+                });
+                const data = await res.json();
+                if (!res.ok || !data.success) {
+                    toast(data.message || "Could not cancel the order. Please try again.", "error");
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="bi bi-x-circle"></i> Yes, Cancel';
+                    return;
+                }
+                currentOrder = data.order;
+                const st = String(currentOrder.status || "cancelled").toLowerCase();
+                document.getElementById("trackTimeline").innerHTML = buildTimeline(st);
+                updateCancelArea(st);
+                pushNotif({ icon: "bi-x-circle-fill", kind: "cancel", title: "Order cancelled", text: "Your order was cancelled and the items were restocked. Any paid amount will be refunded within 5-7 business days." });
+                toast("Order cancelled successfully", "success");
+            } catch (e) {
+                toast("Network error. Please try again.", "error");
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-x-circle"></i> Yes, Cancel';
+            }
+        }
+
+        // ── Order notification feed (per-order, survives page reloads) ──
+        function notifKey() { return "amsri_notif_" + orderId; }
+        function loadNotifs() {
+            try { return JSON.parse(sessionStorage.getItem(notifKey()) || "[]") || []; } catch (e) { return []; }
+        }
+        function saveNotifs(list) {
+            try { sessionStorage.setItem(notifKey(), JSON.stringify(list.slice(-20))); } catch (e) {}
+        }
+        function renderNotifs() {
+            const feed = document.getElementById("notifFeed");
+            if (!feed) return;
+            const list = loadNotifs();
+            feed.innerHTML = list.length ? list.map(function (n) {
+                return '<div class="notif-item ' + escapeHtml(n.kind || "") + '"><i class="bi ' + escapeHtml(n.icon || "bi-bell-fill") + '"></i><div class="notif-body"><strong>' + escapeHtml(n.title) + '</strong><span>' + escapeHtml(n.text) + ' &middot; ' + escapeHtml(n.time) + '</span></div></div>';
+            }).join("") : '<div class="notif-item"><i class="bi bi-bell"></i><div class="notif-body"><strong>No updates yet</strong><span>Live updates about this order will appear here.</span></div></div>';
+        }
+        function pushNotif(n) {
+            const list = loadNotifs();
+            list.push({
+                icon: n.icon || "bi-bell-fill",
+                kind: n.kind || "",
+                title: n.title || "Update",
+                text: n.text || "",
+                time: new Date().toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })
+            });
+            saveNotifs(list);
+            renderNotifs();
+        }
+        function initNotifFeed(order) {
+            if (!orderId) return;
+            if (!loadNotifs().length) {
+                pushNotif({ icon: "bi-receipt", kind: "done", title: "Order placed successfully", text: "A confirmation has been sent to " + (order.customerEmail || "your email") + ". We will notify you here when your order ships." });
+            }
+            renderNotifs();
+        }
+
+        function printOrder() { window.print(); }
+
+
+        init();
+    </script>
+</body>
+</html>

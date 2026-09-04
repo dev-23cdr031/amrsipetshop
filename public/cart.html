@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cart | AM SRI Petshop & Aquarium</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="ecommerce.css">
+</head>
+<body class="eco-page">
+    <nav class="navbar navbar-expand-lg shop-navbar">
+        <div class="container-fluid p-0">
+            <a class="navbar-brand" href="/"><img src="/images/logo.jpeg" alt="AM SRI Petshop" class="shop-logo"></a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navCart"><i class="bi bi-list fs-3 text-light"></i></button>
+            <div class="collapse navbar-collapse justify-content-end" id="navCart">
+                <ul class="navbar-nav align-items-center">
+                    <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/products.html">Shop</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/about.html">About</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/contact.html">Contact</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/my-orders.html"><i class="bi bi-receipt"></i> My Orders</a></li>
+                    <li class="nav-item" data-auth-nav></li>
+                    <li class="nav-item"><a class="nav-link" href="/wishlist.html"><i class="bi bi-heart"></i></a></li>
+                    <li class="nav-item"><a class="nav-link" href="/cart.html"><i class="bi bi-bag"></i> <span id="cartCount" class="nav-count">0</span></a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="eco-shell">
+        <div class="eco-header">
+            <span class="eco-eyebrow">Your selections</span>
+            <h1 class="eco-title">Shopping Cart</h1>
+            <p class="eco-subtitle" id="cartItemCount">0 items in your cart</p>
+        </div>
+
+        <div id="cartContent">
+            <div class="cart-layout">
+                <div class="cart-items" id="cartItems"></div>
+                <aside class="eco-card cart-summary">
+                    <h3>Order Summary</h3>
+                    <div id="promoApplied"></div>
+                    <div class="promo-row">
+                        <input type="text" class="promo-input" id="promoInput" placeholder="Coupon code">
+                        <button class="promo-apply" id="promoApplyBtn" onclick="applyPromo()">Apply</button>
+                    </div>
+                    <div class="summary-line"><span>Subtotal</span><strong id="sumSubtotal">Rs0</strong></div>
+                    <div class="summary-line" id="sumDiscountRow" style="display:none;"><span>Discount</span><strong class="discount" id="sumDiscount">-Rs0</strong></div>
+                    <div class="summary-line"><span>Estimated Tax</span><strong id="sumTax">Rs0</strong></div>
+                    <div class="summary-line delivery"><span><i class="bi bi-truck"></i> Standard delivery fee</span><strong id="sumShipping">₹100</strong></div>
+                    <div class="summary-total"><span>Final payable amount</span><span id="sumTotal">Rs0</span></div>
+                    <button class="eco-btn eco-btn-primary eco-btn-block" style="margin-top:20px;" onclick="goCheckout()"><i class="bi bi-lock-fill"></i> Proceed to Checkout</button>
+                    <a href="/products.html" class="eco-btn eco-btn-ghost eco-btn-block" style="margin-top:10px;"><i class="bi bi-arrow-left"></i> Continue Shopping</a>
+                    <p style="color:var(--eco-muted);font-size:0.76rem;text-align:center;margin-top:14px;margin-bottom:0;"><i class="bi bi-shield-check"></i> Secure checkout &middot; Cash on Delivery available</p>
+                </aside>
+            </div>
+        </div>
+
+        <div id="cartEmpty" style="display:none;">
+            <div class="eco-empty">
+                <div class="eco-empty-icon"><i class="bi bi-bag-x"></i></div>
+                <h3>Your cart is empty</h3>
+                <p>Looks like you have not added anything yet. Explore our shop and find something your pet will love.</p>
+                <a href="/products.html" class="eco-btn eco-btn-primary"><i class="bi bi-bag-heart"></i> Start Shopping</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="eco-toast-wrap" id="toastWrap"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/auth.js"></script>
+    <script>
+        const CART_KEY = "amSriCart";
+        let cart = [];
+        let appliedPromo = null;
+        const TAX_RATE = 0.05;
+        const DELIVERY_FEE = 100; // Flat ₹100 delivery — always appended
+
+        function loadCart() { try { cart = JSON.parse(localStorage.getItem(CART_KEY)) || []; } catch (e) { cart = []; } }
+        function saveCart() { localStorage.setItem(CART_KEY, JSON.stringify(cart)); }
+        function fmt(n) { return "Rs" + Math.round(n).toLocaleString("en-IN"); }
+
+        function toast(msg, type) {
+            type = type || "info";
+            const wrap = document.getElementById("toastWrap");
+            const icons = { success: "bi-check-circle-fill", error: "bi-x-circle-fill", info: "bi-info-circle-fill" };
+            const el = document.createElement("div");
+            el.className = "eco-toast " + type;
+            el.innerHTML = '<i class="bi ' + icons[type] + '"></i><span>' + msg + '</span>';
+            wrap.appendChild(el);
+            requestAnimationFrame(() => el.classList.add("show"));
+            setTimeout(() => { el.classList.remove("show"); setTimeout(() => el.remove(), 400); }, 3200);
+        }
+
+        async function init() { loadCart(); await render(); updateCartCount(); }
+
+        async function render() {
+            loadCart();
+            const empty = document.getElementById("cartEmpty");
+            const content = document.getElementById("cartContent");
+            if (!cart.length) {
+                content.style.display = "none"; empty.style.display = "block";
+                document.getElementById("cartItemCount").textContent = "0 items in your cart";
+                return;
+            }
+            content.style.display = "block"; empty.style.display = "none";
+            const count = cart.reduce((s, i) => s + i.quantity, 0);
+            document.getElementById("cartItemCount").textContent = count + " item" + (count === 1 ? "" : "s") + " in your cart";
+            const wrap = document.getElementById("cartItems");
+            wrap.innerHTML = cart.map(function (item, idx) {
+                return '<div class="cart-row" style="animation-delay:' + (idx * 0.05) + 's">' +
+                    '<img src="' + item.image + '" alt="' + escapeHtml(item.name) + '" onerror="this.src=\'/images/logo.jpeg\'">' +
+                    '<div class="cart-row-info"><h4>' + escapeHtml(item.name) + '</h4>' +
+                    '<div class="cart-cat">' + (item.category || "product") + '</div>' +
+                    '<div class="cart-row-price">' + fmt(item.price) + '</div></div>' +
+                    '<div class="cart-row-actions"><div class="qty-stepper">' +
+                    '<button onclick="changeQty(' + item.id + ', -1)">&minus;</button>' +
+                    '<input type="number" value="' + item.quantity + '" min="1" onchange="setQty(' + item.id + ', this.value)">' +
+                    '<button onclick="changeQty(' + item.id + ', 1)">+</button></div>' +
+                    '<button class="cart-remove" onclick="removeItem(' + item.id + ')" title="Remove"><i class="bi bi-trash"></i></button></div></div>';
+            }).join("");
+            renderSummary();
+        }
+
+        function subtotal() { return cart.reduce((s, i) => s + i.price * i.quantity, 0); }
+
+        function renderSummary() {
+            const sub = subtotal();
+            const discount = appliedPromo ? appliedPromo.discount : 0;
+            const taxable = Math.max(0, sub - discount);
+            const tax = Math.round(taxable * TAX_RATE);
+            const shipping = DELIVERY_FEE; // flat ₹100 always
+            const total = Math.max(0, taxable + tax + shipping);
+            document.getElementById("sumSubtotal").textContent = fmt(sub);
+            document.getElementById("sumTax").textContent = fmt(tax);
+            document.getElementById("sumShipping").textContent = fmt(shipping);
+            const dRow = document.getElementById("sumDiscountRow");
+            if (discount > 0) { dRow.style.display = "flex"; document.getElementById("sumDiscount").textContent = "-" + fmt(discount); }
+            else { dRow.style.display = "none"; }
+            document.getElementById("sumTotal").textContent = fmt(total);
+            const pa = document.getElementById("promoApplied");
+            if (appliedPromo) {
+                pa.innerHTML = '<div class="promo-applied"><span><i class="bi bi-ticket-perforated"></i> ' + appliedPromo.code + ' applied &mdash; ' + appliedPromo.description + '</span><button onclick="removePromo()">&times;</button></div>';
+            } else { pa.innerHTML = ""; }
+        }
+
+        function changeQty(id, delta) {
+            const item = cart.find(i => Number(i.id) === Number(id));
+            if (!item) return;
+            item.quantity = Math.max(1, item.quantity + delta);
+            saveCart(); render(); updateCartCount();
+        }
+        function setQty(id, val) {
+            const item = cart.find(i => Number(i.id) === Number(id));
+            if (!item) return;
+            item.quantity = Math.max(1, parseInt(val) || 1);
+            saveCart(); render(); updateCartCount();
+        }
+        function removeItem(id) {
+            cart = cart.filter(i => Number(i.id) !== Number(id));
+            saveCart(); render(); updateCartCount();
+            toast("Item removed from cart", "info");
+        }
+
+        async function applyPromo() {
+            const code = document.getElementById("promoInput").value.trim();
+            if (!code) { toast("Enter a coupon code first", "error"); return; }
+            const sub = subtotal();
+            const btn = document.getElementById("promoApplyBtn");
+            btn.disabled = true; btn.textContent = "Checking...";
+            try {
+                const res = await fetch("/api/promo/validate", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code: code, subtotal: sub }) });
+                const data = await res.json();
+                if (!res.ok || !data.success) { toast(data.message || "Invalid coupon", "error"); appliedPromo = null; }
+                else { appliedPromo = data; toast("Coupon applied! You saved " + fmt(data.discount), "success"); document.getElementById("promoInput").value = ""; }
+            } catch (e) { toast("Could not validate coupon. Try again.", "error"); }
+            finally { btn.disabled = false; btn.textContent = "Apply"; renderSummary(); }
+        }
+        function removePromo() { appliedPromo = null; renderSummary(); toast("Coupon removed", "info"); }
+
+        function goCheckout() {
+            if (!cart.length) { toast("Your cart is empty", "error"); return; }
+            const sub = subtotal();
+            const discount = appliedPromo ? appliedPromo.discount : 0;
+            const taxable = Math.max(0, sub - discount);
+            const tax = Math.round(taxable * TAX_RATE);
+            const shipping = DELIVERY_FEE; // flat ₹100 always
+            sessionStorage.setItem("checkout_promo", JSON.stringify(appliedPromo));
+            sessionStorage.setItem("checkout_totals", JSON.stringify({ shipping: shipping, tax: tax, discount: discount, promoCode: appliedPromo ? appliedPromo.code : null }));
+            window.location.href = "/checkout.html";
+        }
+
+        function updateCartCount() {
+            let c = [];
+            try { c = JSON.parse(localStorage.getItem(CART_KEY)) || []; } catch (e) { c = []; }
+            const el = document.getElementById("cartCount");
+            if (el) el.textContent = c.reduce((s, i) => s + (i.quantity || 1), 0);
+        }
+
+        function escapeHtml(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"); }
+
+        // Keep this page in sync when the cart changes in another tab — the cart
+        // itself is only ever cleared after an order is successfully placed.
+        window.addEventListener("storage", function (event) {
+            if (event.key !== CART_KEY) return;
+            render(); updateCartCount();
+        });
+
+        init();
+    </script>
+</body>
+</html>

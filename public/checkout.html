@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout | AM SRI Petshop & Aquarium</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="ecommerce.css">
+</head>
+<body class="eco-page">
+    <nav class="navbar navbar-expand-lg shop-navbar">
+        <div class="container-fluid p-0">
+            <a class="navbar-brand" href="/"><img src="/images/logo.jpeg" alt="AM SRI Petshop" class="shop-logo"></a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navCo"><i class="bi bi-list fs-3 text-light"></i></button>
+            <div class="collapse navbar-collapse justify-content-end" id="navCo">
+                <ul class="navbar-nav align-items-center">
+                    <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/products.html">Shop</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/about.html">About</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/contact.html">Contact</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/my-orders.html"><i class="bi bi-receipt"></i> My Orders</a></li>
+                    <li class="nav-item" data-auth-nav></li>
+                    <li class="nav-item"><a class="nav-link" href="/cart.html"><i class="bi bi-bag"></i> <span id="cartCount" class="nav-count">0</span></a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="eco-shell">
+        <div class="eco-header">
+            <span class="eco-eyebrow">Almost there</span>
+            <h1 class="eco-title">Checkout</h1>
+            <p class="eco-subtitle">Complete your order in a few quick steps.</p>
+        </div>
+
+        <div id="coEmpty" style="display:none;">
+            <div class="eco-empty">
+                <div class="eco-empty-icon"><i class="bi bi-bag-x"></i></div>
+                <h3>Your cart is empty</h3>
+                <p>Add some items to your cart before checking out.</p>
+                <a href="/products.html" class="eco-btn eco-btn-primary"><i class="bi bi-bag-heart"></i> Start Shopping</a>
+            </div>
+        </div>
+
+        <div id="coContent" class="checkout-layout">
+            <div class="checkout-accordion" id="coAccordion">
+                <div class="co-step open" data-step="1">
+                    <div class="co-step-head" onclick="toggleStep(1)">
+                        <div class="co-step-num">1</div><h4>Shipping Address</h4><i class="bi bi-chevron-down co-step-toggle"></i>
+                    </div>
+                    <div class="co-step-body"><div class="co-step-body-inner">
+                        <div class="co-row-2">
+                            <div class="co-field"><label>First Name *</label><input class="co-input" id="firstName" placeholder="First name" autocomplete="given-name"><div class="co-field-error">First name is required.</div></div>
+                            <div class="co-field"><label>Last Name *</label><input class="co-input" id="lastName" placeholder="Last name" autocomplete="family-name"><div class="co-field-error">Last name is required.</div></div>
+                        </div>
+                        <div class="co-field"><label>Email *</label><input class="co-input" id="email" type="email" placeholder="you@email.com" autocomplete="email"><div class="co-field-error">Enter a valid email address.</div></div>
+                        <div class="co-field"><label>Phone *</label><input class="co-input" id="phone" type="tel" placeholder="10-digit mobile number" inputmode="numeric" maxlength="10" autocomplete="tel"><div class="co-field-error">Enter a valid 10-digit phone number.</div></div>
+                        <div class="co-field"><label>Street Address *</label><input class="co-input" id="street" placeholder="House no, street, area" autocomplete="address-line1"><div class="co-field-error">Street address is required.</div></div>
+                        <div class="co-row-2">
+                            <div class="co-field"><label>City *</label><input class="co-input" id="city" placeholder="City" autocomplete="address-level2"><div class="co-field-error">City is required.</div></div>
+                            <div class="co-field"><label>State *</label><input class="co-input" id="state" placeholder="State" autocomplete="address-level1"><div class="co-field-error">State is required.</div></div>
+                        </div>
+                        <div class="co-row-2">
+                            <div class="co-field"><label>PIN Code *</label><input class="co-input" id="pincode" placeholder="6-digit PIN" inputmode="numeric" maxlength="6" autocomplete="postal-code"><div class="co-field-error">Enter a valid 6-digit PIN code.</div></div>
+                            <div class="co-field"><label>Landmark (optional)</label><input class="co-input" id="landmark" placeholder="Near..."></div>
+                        </div>
+                        <div class="co-billing-block">
+                            <label class="co-check">
+                                <input type="checkbox" id="billingSame" checked>
+                                <span><i class="bi bi-receipt"></i>Billing address is the same as my shipping address</span>
+                            </label>
+                            <div id="billingFields" style="display:none;">
+                                <div class="co-field"><label>Billing Street Address *</label><input class="co-input" id="billStreet" placeholder="House no, street, area"><div class="co-field-error">Billing street address is required.</div></div>
+                                <div class="co-row-2">
+                                    <div class="co-field"><label>Billing City *</label><input class="co-input" id="billCity" placeholder="City"><div class="co-field-error">Billing city is required.</div></div>
+                                    <div class="co-field"><label>Billing State *</label><input class="co-input" id="billState" placeholder="State"><div class="co-field-error">Billing state is required.</div></div>
+                                </div>
+                                <div class="co-row-2">
+                                    <div class="co-field"><label>Billing PIN Code *</label><input class="co-input" id="billPincode" placeholder="6-digit PIN" inputmode="numeric" maxlength="6"><div class="co-field-error">Enter a valid 6-digit PIN code.</div></div>
+                                    <div class="co-field"><label>Billing Landmark (optional)</label><input class="co-input" id="billLandmark" placeholder="Near..."></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="co-nav"><span></span><button class="eco-btn eco-btn-primary" onclick="nextStep(1)">Continue <i class="bi bi-arrow-right"></i></button></div>
+                    </div></div>
+                </div>
+
+                <div class="co-step" data-step="2">
+                    <div class="co-step-head" onclick="toggleStep(2)">
+                        <div class="co-step-num">2</div><h4>Delivery Method</h4><i class="bi bi-chevron-down co-step-toggle"></i>
+                    </div>
+                    <div class="co-step-body"><div class="co-step-body-inner">
+                        <div class="co-delivery-note" role="note">
+                            <div class="co-delivery-icon"><i class="bi bi-truck"></i></div>
+                            <div><strong>Standard delivery</strong><span>Delivered in 4–5 business days to your shipping address.</span></div>
+                            <b>₹100</b>
+                        </div>
+                        <p class="co-help"><i class="bi bi-info-circle"></i> The ₹100 standard delivery fee is included in your final payable amount.</p>
+                        <div class="co-nav"><button class="eco-btn eco-btn-ghost" onclick="toggleStep(1)"><i class="bi bi-arrow-left"></i> Back</button><button class="eco-btn eco-btn-primary" onclick="nextStep(2)">Continue <i class="bi bi-arrow-right"></i></button></div>
+                    </div></div>
+                </div>
+                <div class="co-step" data-step="3">
+                    <div class="co-step-head" onclick="toggleStep(3)">
+                        <div class="co-step-num">3</div><h4>Payment Method</h4><i class="bi bi-chevron-down co-step-toggle"></i>
+                    </div>
+                    <div class="co-step-body"><div class="co-step-body-inner">
+                        <div class="co-options" id="paymentOptions">
+                            <label class="co-option selected"><input type="radio" name="payment" value="cod" checked><div class="co-option-body"><strong>Cash on Delivery</strong><span>Pay when your order arrives</span></div><i class="bi bi-cash-coin" style="color:var(--eco-green);font-size:1.3rem;"></i></label>
+                            <label class="co-option"><input type="radio" name="payment" value="upi"><div class="co-option-body"><strong>UPI</strong><span>Pay via any UPI app</span></div><i class="bi bi-phone" style="color:var(--eco-red-bright);font-size:1.3rem;"></i></label>
+                            <label class="co-option"><input type="radio" name="payment" value="card"><div class="co-option-body"><strong>Credit / Debit Card</strong><span>Visa, Mastercard, RuPay</span></div><i class="bi bi-credit-card" style="color:var(--eco-amber);font-size:1.3rem;"></i></label>
+                        </div>
+                        <div id="paymentDetailsBox" class="co-payment-fields" style="display:none;">
+                            <div id="upiFields" style="display:none;">
+                                <div class="co-field"><label>UPI ID *</label><input class="co-input" id="upiId" placeholder="yourname@bank" autocomplete="off"><div class="co-field-error">Enter a valid UPI ID like name@bank.</div></div>
+                                <p class="co-help" style="margin-bottom:0;"><i class="bi bi-shield-lock"></i> A collect request will be sent to this UPI ID after you place the order.</p>
+                            </div>
+                            <div id="cardFields" style="display:none;">
+                                <div class="co-field"><label>Name on Card *</label><input class="co-input" id="cardName" placeholder="Full name on card" autocomplete="cc-name"><div class="co-field-error">Name on card is required.</div></div>
+                                <div class="co-field"><label>Card Number *</label><input class="co-input" id="cardNumber" inputmode="numeric" placeholder="1234 5678 9012 3456" maxlength="19" autocomplete="cc-number"><div class="co-field-error">Enter a valid 16-digit card number.</div></div>
+                                <div class="co-row-2">
+                                    <div class="co-field"><label>Expiry (MM/YY) *</label><input class="co-input" id="cardExpiry" inputmode="numeric" placeholder="MM/YY" maxlength="5" autocomplete="cc-exp"><div class="co-field-error">Enter a valid future expiry date.</div></div>
+                                    <div class="co-field"><label>CVV *</label><input class="co-input" id="cardCvv" type="password" inputmode="numeric" placeholder="&bull;&bull;&bull;" maxlength="4" autocomplete="cc-csc"><div class="co-field-error">Enter a valid CVV.</div></div>
+                                </div>
+                                <p class="co-help" style="margin-bottom:0;"><i class="bi bi-shield-lock"></i> Demo gateway — only your card's last 4 digits are stored; full card details never leave this page.</p>
+                            </div>
+                        </div>
+
+                        <div class="co-nav"><button class="eco-btn eco-btn-ghost" onclick="toggleStep(2)"><i class="bi bi-arrow-left"></i> Back</button><button class="eco-btn eco-btn-primary" onclick="nextStep(3)">Continue <i class="bi bi-arrow-right"></i></button></div>
+                    </div></div>
+                </div>
+
+                <div class="co-step" data-step="4">
+                    <div class="co-step-head" onclick="toggleStep(4)">
+                        <div class="co-step-num">4</div><h4>Review Your Order</h4><i class="bi bi-chevron-down co-step-toggle"></i>
+                    </div>
+                    <div class="co-step-body"><div class="co-step-body-inner">
+                        <div id="reviewAddress" style="padding:14px 16px;border-radius:12px;background:rgba(0,0,0,0.25);margin-bottom:16px;font-size:0.9rem;line-height:1.6;color:var(--eco-muted);"></div>
+                        <h4 style="color:var(--eco-text);font-size:0.95rem;margin:0 0 10px;">Items</h4>
+                        <div class="co-review-items" id="reviewItems"></div>
+                        <div class="co-nav"><button class="eco-btn eco-btn-ghost" onclick="toggleStep(3)"><i class="bi bi-arrow-left"></i> Back</button><button class="eco-btn eco-btn-primary" id="placeOrderBtn" onclick="placeOrder()"><i class="bi bi-bag-check"></i> Place Order</button></div>
+                    </div></div>
+                </div>
+            </div>
+            <aside class="eco-card cart-summary checkout-summary" id="coSummary"></aside>
+        </div>
+    </div>
+
+    <div class="eco-toast-wrap" id="toastWrap"></div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/auth.js"></script>
+    <script>
+        const CART_KEY = "amSriCart";
+        let cart = [];
+        let totals = { shipping: 100, tax: 0, discount: 0, promoCode: null };
+        const DELIVERY_FEE = 100;
+        const TAX_RATE = 0.05;
+
+        function fmt(n) { return "Rs" + Math.round(n).toLocaleString("en-IN"); }
+        function loadCart() { try { cart = JSON.parse(localStorage.getItem(CART_KEY)) || []; } catch (e) { cart = []; } }
+        function subtotal() { return cart.reduce((s, i) => s + i.price * i.quantity, 0); }
+        function escapeHtml(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"); }
+
+        function toast(msg, type) {
+            type = type || "info";
+            const wrap = document.getElementById("toastWrap");
+            const icons = { success: "bi-check-circle-fill", error: "bi-x-circle-fill", info: "bi-info-circle-fill" };
+            const el = document.createElement("div");
+            el.className = "eco-toast " + type;
+            el.innerHTML = '<i class="bi ' + icons[type] + '"></i><span>' + msg + '</span>';
+            wrap.appendChild(el);
+            requestAnimationFrame(() => el.classList.add("show"));
+            setTimeout(() => { el.classList.remove("show"); setTimeout(() => el.remove(), 400); }, 3200);
+        }
+
+        function requireLogin() {
+            const u = JSON.parse(localStorage.getItem("petshop_currentUser") || "null");
+            if (!u) {
+                sessionStorage.setItem("checkout_redirect", "true");
+                window.location.href = "/login.html?redirect=checkout";
+                return null;
+            }
+            return u;
+        }
+
+        function init() {
+            const user = requireLogin();
+            if (!user) return; // redirecting to login
+
+            loadCart();
+            const st = sessionStorage.getItem("checkout_totals");
+            if (st) { try { totals = JSON.parse(st); } catch (e) {} }
+            if (!cart.length) {
+                document.getElementById("coContent").style.display = "none";
+                document.getElementById("coEmpty").style.display = "block";
+                return;
+            }
+            updateCartCount();
+            renderSummary();
+            prefillUser();
+            setupOptionListeners();
+        }
+
+        function prefillUser() {
+            const u = JSON.parse(localStorage.getItem("petshop_currentUser") || "null");
+            if (u) {
+                document.getElementById("firstName").value = u.firstName || "";
+                document.getElementById("lastName").value = u.lastName || "";
+                document.getElementById("email").value = u.email || "";
+                document.getElementById("phone").value = u.phone || "";
+            }
+        }
+
+        function setupOptionListeners() {
+            document.querySelectorAll('input[name="payment"]').forEach(function (r) {
+                r.addEventListener("change", function () {
+                    document.querySelectorAll("#paymentOptions .co-option").forEach(o => o.classList.remove("selected"));
+                    r.closest(".co-option").classList.add("selected");
+                    updatePaymentFields();
+                });
+            });
+            // Billing address toggle — reveal billing fields only when billing differs
+            document.getElementById("billingSame").addEventListener("change", function () {
+                document.getElementById("billingFields").style.display = this.checked ? "none" : "block";
+            });
+            // Card number auto-formatting in groups of 4
+            document.getElementById("cardNumber").addEventListener("input", function () {
+                const digits = this.value.replace(/\D/g, "").slice(0, 16);
+                this.value = digits.replace(/(\d{4})(?=\d)/g, "$1 ");
+            });
+            // Expiry auto-inserts the slash
+            document.getElementById("cardExpiry").addEventListener("input", function () {
+                const digits = this.value.replace(/\D/g, "").slice(0, 4);
+                this.value = digits.length > 2 ? digits.slice(0, 2) + "/" + digits.slice(2) : digits;
+            });
+        }
+
+        function updatePaymentFields() {
+            const m = getPayment();
+            document.getElementById("paymentDetailsBox").style.display = m === "cod" ? "none" : "block";
+            document.getElementById("upiFields").style.display = m === "upi" ? "block" : "none";
+            document.getElementById("cardFields").style.display = m === "card" ? "block" : "none";
+            if (m === "card") {
+                const nameEl = document.getElementById("cardName");
+                if (!nameEl.value.trim()) nameEl.value = (document.getElementById("firstName").value + " " + document.getElementById("lastName").value).trim();
+            }
+        }
+
+
+        function getDelivery() {
+            return "standard";
+        }
+        function getPayment() {
+            const el = document.querySelector('input[name="payment"]:checked');
+            return el ? el.value : "cod";
+        }
+        function validatePayment() {
+            const m = getPayment();
+            if (m === "cod") return true;
+            let ok = true;
+            const mark = function (input, valid) {
+                const field = input.closest(".co-field");
+                if (!valid) { field.classList.add("invalid"); input.classList.add("invalid"); ok = false; }
+                else { field.classList.remove("invalid"); input.classList.remove("invalid"); }
+            };
+            if (m === "upi") {
+                mark(document.getElementById("upiId"), /^[\w.\-]{2,}@[a-zA-Z]{2,}$/.test(document.getElementById("upiId").value.trim()));
+            } else if (m === "card") {
+                mark(document.getElementById("cardName"), document.getElementById("cardName").value.trim().length > 0);
+                mark(document.getElementById("cardNumber"), document.getElementById("cardNumber").value.replace(/\D/g, "").length === 16);
+                const em = document.getElementById("cardExpiry").value.trim().match(/^(\d{2})\/(\d{2})$/);
+                let expOk = false;
+                if (em) {
+                    const month = parseInt(em[1], 10), year = 2000 + parseInt(em[2], 10);
+                    expOk = month >= 1 && month <= 12 && new Date(year, month, 0, 23, 59, 59) >= new Date();
+                }
+                mark(document.getElementById("cardExpiry"), expOk);
+                mark(document.getElementById("cardCvv"), /^[0-9]{3,4}$/.test(document.getElementById("cardCvv").value.trim()));
+            }
+            return ok;
+        }
+        // Only masked, non-sensitive payment data is returned. The full card
+        // number and CVV are intentionally never included.
+        function getPaymentDetails() {
+            const m = getPayment();
+            if (m === "upi") return { upiId: document.getElementById("upiId").value.trim() };
+            if (m === "card") {
+                const digits = document.getElementById("cardNumber").value.replace(/\D/g, "");
+                const brand = digits.charAt(0) === "4" ? "Visa" : digits.charAt(0) === "5" ? "Mastercard" : "Card";
+                return { brand: brand, last4: digits.slice(-4), name: document.getElementById("cardName").value.trim() };
+            }
+            return null;
+        }
+        function buildBillingPayload() {
+            if (document.getElementById("billingSame").checked) return null;
+            return {
+                address: document.getElementById("billStreet").value.trim(),
+                landmark: document.getElementById("billLandmark").value.trim(),
+                city: document.getElementById("billCity").value.trim(),
+                state: document.getElementById("billState").value.trim(),
+                pincode: document.getElementById("billPincode").value.trim()
+            };
+        }
+        function paymentLabel() {
+            const m = getPayment();
+            if (m === "cod") return "Cash on Delivery";
+            if (m === "upi") return "UPI &mdash; " + escapeHtml(document.getElementById("upiId").value.trim());
+            const digits = document.getElementById("cardNumber").value.replace(/\D/g, "");
+            const brand = digits.charAt(0) === "4" ? "Visa" : digits.charAt(0) === "5" ? "Mastercard" : "Card";
+            return escapeHtml(brand) + " ending " + escapeHtml(digits.slice(-4));
+        }
+        function billingSummary() {
+            if (document.getElementById("billingSame").checked) return "Same as shipping address";
+            return escapeHtml([
+                document.getElementById("billStreet").value,
+                document.getElementById("billCity").value,
+                document.getElementById("billState").value + " - " + document.getElementById("billPincode").value
+            ].filter(Boolean).join(", "));
+        }
+
+        function recalcShipping() {
+            totals.shipping = DELIVERY_FEE;
+        }
+
+        function renderSummary() {
+            const sub = subtotal();
+            const discount = totals.discount || 0;
+            const taxable = Math.max(0, sub - discount);
+            const tax = Math.round(taxable * TAX_RATE);
+            recalcShipping();
+            const total = Math.max(0, taxable + tax + (totals.shipping || 0));
+            const s = document.getElementById("coSummary");
+            s.innerHTML = '<h3>Order Summary</h3>' +
+                '<div class="summary-line"><span>Subtotal (' + cart.length + ' items)</span><strong>' + fmt(sub) + '</strong></div>' +
+                (discount > 0 ? '<div class="summary-line discount"><span>Discount' + (totals.promoCode ? ' (' + totals.promoCode + ')' : '') + '</span><strong>-' + fmt(discount) + '</strong></div>' : '') +
+                '<div class="summary-line"><span>Estimated Tax</span><strong>' + fmt(tax) + '</strong></div>' +
+                '<div class="summary-line delivery"><span><i class="bi bi-truck"></i> Standard delivery fee</span><strong>' + fmt(DELIVERY_FEE) + '</strong></div>' +
+                '<div class="summary-total"><span>Final payable amount</span><span>' + fmt(total) + '</span></div>' +
+                '<p style="color:var(--eco-muted);font-size:0.78rem;margin-top:16px;margin-bottom:0;"><i class="bi bi-shield-check"></i> By placing your order you agree to our terms of service.</p>';
+        }
+        function toggleStep(n) {
+            const step = document.querySelector('.co-step[data-step="' + n + '"]');
+            if (!step) return;
+            step.classList.toggle("open");
+        }
+        function markStepDone(n) {
+            const step = document.querySelector('.co-step[data-step="' + n + '"]');
+            if (step) step.classList.add("done");
+        }
+        function openStep(n) {
+            document.querySelectorAll(".co-step").forEach(function (s) { s.classList.remove("open"); });
+            const step = document.querySelector('.co-step[data-step="' + n + '"]');
+            if (step) step.classList.add("open");
+        }
+
+        function validateStep1() {
+            let ok = true;
+            const fields = [
+                { id: "firstName", test: v => v.trim().length > 0 },
+                { id: "lastName", test: v => v.trim().length > 0 },
+                { id: "email", test: v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim()) },
+                { id: "phone", test: v => /^[0-9]{10}$/.test(v.trim()) },
+                { id: "street", test: v => v.trim().length > 0 },
+                { id: "city", test: v => v.trim().length > 0 },
+                { id: "state", test: v => v.trim().length > 0 },
+                { id: "pincode", test: v => /^[0-9]{6}$/.test(v.trim()) }
+            ];
+            if (!document.getElementById("billingSame").checked) {
+                fields.push(
+                    { id: "billStreet", test: v => v.trim().length > 0 },
+                    { id: "billCity", test: v => v.trim().length > 0 },
+                    { id: "billState", test: v => v.trim().length > 0 },
+                    { id: "billPincode", test: v => /^[0-9]{6}$/.test(v.trim()) }
+                );
+            }
+            fields.forEach(function (f) {
+
+                const input = document.getElementById(f.id);
+                const field = input.closest(".co-field");
+                if (!f.test(input.value)) { field.classList.add("invalid"); input.classList.add("invalid"); ok = false; }
+                else { field.classList.remove("invalid"); input.classList.remove("invalid"); }
+            });
+            return ok;
+        }
+
+        function nextStep(current) {
+            if (current === 1 && !validateStep1()) { toast("Please fix the highlighted fields", "error"); return; }
+            if (current === 3 && !validatePayment()) { toast("Please complete your payment details", "error"); return; }
+
+            markStepDone(current);
+            openStep(current + 1);
+            if (current + 1 === 4) renderReview();
+            document.querySelector('.co-step[data-step="' + (current + 1) + '"]').scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+
+        function renderReview() {
+            const fn = document.getElementById("firstName").value;
+            const ln = document.getElementById("lastName").value;
+            const addr = document.getElementById("reviewAddress");
+            addr.innerHTML = "<strong style='color:var(--eco-text);'>" + escapeHtml(fn + " " + ln) + "</strong><br>" +
+                escapeHtml(document.getElementById("street").value) + "<br>" +
+                escapeHtml(document.getElementById("city").value) + ", " + escapeHtml(document.getElementById("state").value) + " - " + escapeHtml(document.getElementById("pincode").value) + "<br>" +
+                "<i class='bi bi-telephone'></i> " + escapeHtml(document.getElementById("phone").value) + " &nbsp; <i class='bi bi-envelope'></i> " + escapeHtml(document.getElementById("email").value) + "<br>" +
+                "<strong style='color:var(--eco-text);'>Delivery:</strong> Standard (₹100) &nbsp; <strong style='color:var(--eco-text);'>Payment:</strong> " + paymentLabel() + "<br>" +
+                "<strong style='color:var(--eco-text);'>Billing:</strong> " + billingSummary();
+
+            document.getElementById("reviewItems").innerHTML = cart.map(function (it) {
+                return '<div class="co-review-item"><img src="' + it.image + '" onerror="this.src=\'/images/logo.jpeg\'"><div class="co-ri-name">' + escapeHtml(it.name) + ' <span>x' + it.quantity + '</span></div><div class="co-ri-total">' + fmt(it.price * it.quantity) + '</div></div>';
+            }).join("");
+            
+            // Add detailed cost breakdown in review step with highlighted standard delivery fee
+            const sub = subtotal();
+            const discount = totals.discount || 0;
+            const taxable = Math.max(0, sub - discount);
+            const tax = Math.round(taxable * TAX_RATE);
+            recalcShipping();
+            const total = Math.max(0, taxable + tax + totals.shipping);
+            
+            document.getElementById("reviewCostBreakdown")?.remove();
+            const costBreakdownHtml = `
+                <div id="reviewCostBreakdown" style="margin-top:20px;padding:16px;border-radius:12px;background:rgba(0,0,0,0.25);">
+                    <h4 style="color:var(--eco-text);font-size:0.95rem;margin:0 0 16px;">Order Summary</h4>
+                    <div class="summary-line" style="display:flex;justify-content:space-between;margin-bottom:8px;">
+                        <span style="color:var(--eco-muted);">Items Subtotal</span>
+                        <strong>${fmt(sub)}</strong>
+                    </div>
+                    <div class="summary-line" style="display:flex;justify-content:space-between;margin-bottom:8px;">
+                        <span style="color:var(--eco-muted);">Standard Delivery Fee <span style="color:var(--eco-red-bright);">(fixed)</span></span>
+                        <strong>${fmt(DELIVERY_FEE)}</strong>
+                    </div>
+                    ${discount > 0 ? `
+                    <div class="summary-line" style="display:flex;justify-content:space-between;margin-bottom:8px;">
+                        <span style="color:var(--eco-green);">Discount ${totals.promoCode ? '(' + totals.promoCode + ')' : ''}</span>
+                        <strong style="color:var(--eco-green);">-${fmt(discount)}</strong>
+                    </div>` : ''}
+                    <div class="summary-line" style="display:flex;justify-content:space-between;margin-bottom:8px;">
+                        <span style="color:var(--eco-muted);">Taxes</span>
+                        <strong>${fmt(tax)}</strong>
+                    </div>
+                    <div class="summary-total" style="display:flex;justify-content:space-between;margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.1);">
+                        <span style="color:var(--eco-text);font-weight:600;">Final Payable Amount</span>
+                        <span style="color:var(--eco-red-bright);font-weight:700;font-size:1.1rem;">${fmt(total)}</span>
+                    </div>
+                </div>
+            `;
+            document.getElementById("reviewItems").insertAdjacentHTML('afterend', costBreakdownHtml);
+        }
+        async function placeOrder() {
+            if (!cart.length) { toast("Your cart is empty", "error"); return; }
+            if (!validateStep1()) { toast("Please fix shipping details", "error"); openStep(1); return; }
+            if (getPayment() !== "cod" && !validatePayment()) { toast("Please complete your payment details", "error"); openStep(3); return; }
+
+            const btn = document.getElementById("placeOrderBtn");
+            btn.disabled = true; btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Placing order...';
+            const sub = subtotal();
+            const discount = totals.discount || 0;
+            const taxable = Math.max(0, sub - discount);
+            const tax = Math.round(taxable * TAX_RATE);
+            recalcShipping();
+            const orderData = {
+                customerId: (JSON.parse(localStorage.getItem("petshop_currentUser") || "null") || {}).customerId || null,
+                customerName: document.getElementById("firstName").value.trim() + " " + document.getElementById("lastName").value.trim(),
+                customerEmail: document.getElementById("email").value.trim(),
+                customerPhone: document.getElementById("phone").value.trim(),
+                address: {
+                    name: document.getElementById("firstName").value.trim() + " " + document.getElementById("lastName").value.trim(),
+                    phone: document.getElementById("phone").value.trim(),
+                    address: document.getElementById("street").value.trim(),
+                    landmark: document.getElementById("landmark").value.trim(),
+                    city: document.getElementById("city").value.trim(),
+                    state: document.getElementById("state").value.trim(),
+                    pincode: document.getElementById("pincode").value.trim()
+                },
+                items: cart, subtotal: sub, shipping: DELIVERY_FEE, tax: tax, discount: discount,
+                promoCode: totals.promoCode || null, paymentMethod: getPayment(), paymentDetails: getPaymentDetails(), deliveryMethod: getDelivery(),
+                billingSameAsShipping: document.getElementById("billingSame").checked,
+                billingAddress: buildBillingPayload()
+            };
+
+            try {
+                const res = await fetch("/api/orders", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(orderData) });
+                const data = await res.json();
+                if (!res.ok || !data.success) { toast(data.message || "Could not place order", "error"); btn.disabled = false; btn.innerHTML = '<i class="bi bi-bag-check"></i> Place Order'; return; }
+                // Order confirmed by the server — only NOW clear the cart, plus the
+                // checkout promo/totals so nothing stale leaks into the next order
+                localStorage.removeItem(CART_KEY);
+                sessionStorage.removeItem("checkout_totals");
+                sessionStorage.removeItem("checkout_promo");
+                sessionStorage.setItem("last_order", JSON.stringify({ orderId: data.order.orderId }));
+                toast("Order placed successfully!", "success");
+                setTimeout(function () { window.location.href = "/order-confirmation.html?orderId=" + data.order.orderId; }, 700);
+            } catch (e) {
+                toast("Network error. Please try again.", "error");
+                btn.disabled = false; btn.innerHTML = '<i class="bi bi-bag-check"></i> Place Order';
+            }
+        }
+
+        function updateCartCount() {
+            let c = [];
+            try { c = JSON.parse(localStorage.getItem(CART_KEY)) || []; } catch (e) { c = []; }
+            const el = document.getElementById("cartCount");
+            if (el) el.textContent = c.reduce((s, i) => s + (i.quantity || 1), 0);
+        }
+
+        // Keep an open checkout honest when another tab changes the shared cart.
+        // Address fields live in the DOM, so they remain untouched while items remain.
+        window.addEventListener("storage", function (event) {
+            if (event.key !== CART_KEY) return;
+            loadCart();
+            updateCartCount();
+            if (!cart.length) {
+                document.getElementById("coContent").style.display = "none";
+                document.getElementById("coEmpty").style.display = "block";
+                toast("Your cart was updated and is now empty.", "info");
+                return;
+            }
+            document.getElementById("coEmpty").style.display = "none";
+            document.getElementById("coContent").style.display = "grid";
+            renderSummary();
+            if (document.querySelector('.co-step[data-step="4"]').classList.contains("open")) renderReview();
+        });
+
+        init();
+    </script>
+</body>
+</html>

@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard | AM SRI Petshop</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="admin.css">
+</head>
+<body class="ad-body">
+<div class="ad-layout">
+    <aside class="ad-sidebar" id="adSidebar">
+        <div class="ad-brand">
+            <img src="/images/logo.jpeg" alt="AM SRI">
+            <div><b>AM SRI Petshop</b><span>Admin Console</span></div>
+        </div>
+        <ul class="ad-nav">
+            <li><a class="active" data-view="overview" onclick="showView('overview')"><i class="bi bi-grid-1x2-fill"></i> Overview</a></li>
+            <li><a data-view="products" onclick="showView('products')"><i class="bi bi-box-seam-fill"></i> Products</a></li>
+            <li><a data-view="orders" onclick="showView('orders')"><i class="bi bi-receipt"></i> Orders</a></li>
+            <li><a data-view="users" onclick="showView('users')"><i class="bi bi-people-fill"></i> Users</a></li>
+            <li><a data-view="messages" onclick="showView('messages')"><i class="bi bi-envelope-fill"></i> Messages</a></li>
+            <li><a data-view="settings" onclick="showView('settings')"><i class="bi bi-gear-fill"></i> Settings</a></li>
+            <li><a class="ad-logout" onclick="logout()"><i class="bi bi-box-arrow-right"></i> Logout</a></li>
+        </ul>
+    </aside>
+
+    <main class="ad-main">
+        <div class="ad-topbar">
+            <div style="display:flex;align-items:center;gap:12px;">
+                <button class="ad-menu-toggle" onclick="toggleSidebar()"><i class="bi bi-list"></i></button>
+                <div>
+                    <h1 id="viewTitle">Overview</h1>
+                    <p id="viewSubtitle">Welcome back — here is what is happening today.</p>
+                </div>
+            </div>
+            <div class="ad-topbar-right">
+                <span class="ad-live-status" id="realtimeStatus" role="status"><i></i> Syncing orders</span>
+                <div class="ad-search"><i class="bi bi-search"></i><input type="text" placeholder="Search..." id="globalSearch"></div>
+                <div class="ad-avatar" id="adminAvatar">A</div>
+            </div>
+        </div>
+
+        <!-- OVERVIEW -->
+        <section class="ad-view active" id="view-overview">
+            <div class="ad-stats">
+                <div class="ad-stat"><div class="ad-stat-top"><div class="ad-stat-icon amber"><i class="bi bi-currency-rupee"></i></div><span class="ad-stat-trend up" id="trendRevenue"><i class="bi bi-arrow-up-short"></i> revenue</span></div><div class="ad-stat-value" id="statRevenue">Rs0</div><div class="ad-stat-label">Total Revenue</div></div>
+                <div class="ad-stat"><div class="ad-stat-top"><div class="ad-stat-icon red"><i class="bi bi-bag-check"></i></div><span class="ad-stat-trend up"><i class="bi bi-arrow-up-short"></i> orders</span></div><div class="ad-stat-value" id="statOrders">0</div><div class="ad-stat-label">Total Orders</div></div>
+                <div class="ad-stat"><div class="ad-stat-top"><div class="ad-stat-icon green"><i class="bi bi-box-seam"></i></div><span class="ad-stat-trend up"><i class="bi bi-arrow-up-short"></i> live</span></div><div class="ad-stat-value" id="statProducts">0</div><div class="ad-stat-label">Products</div></div>
+                <div class="ad-stat"><div class="ad-stat-top"><div class="ad-stat-icon blue"><i class="bi bi-people"></i></div><span class="ad-stat-trend up"><i class="bi bi-arrow-up-short"></i> users</span></div><div class="ad-stat-value" id="statUsers">0</div><div class="ad-stat-label">Registered Users</div></div>
+            </div>
+
+            <div class="ad-grid-2" style="margin-bottom:20px;">
+                <div class="ad-card">
+                    <div class="ad-card-head"><h2>Revenue (Last 7 Days)</h2><span class="ad-stat-trend up" id="avgOrder">Avg order Rs0</span></div>
+                    <div class="ad-chart" id="revenueChart"></div>
+                </div>
+                <div class="ad-card">
+                    <div class="ad-card-head"><h2>Orders by Status</h2></div>
+                    <div id="statusBreakdown"></div>
+                </div>
+            </div>
+
+            <div class="ad-grid-2">
+                <div class="ad-card">
+                    <div class="ad-card-head"><h2>Sales by Category</h2></div>
+                    <div class="ad-cat-list" id="categoryBreakdown"></div>
+                </div>
+                <div class="ad-card">
+                    <div class="ad-card-head"><h2>Low Stock Alerts</h2><button class="ad-btn ad-btn-ghost ad-btn-sm" onclick="showView('products')">Manage</button></div>
+                    <div id="lowStockList"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- PRODUCTS -->
+        <section class="ad-view" id="view-products">
+            <div class="ad-card">
+                <div class="ad-card-head">
+                    <h2>Product Management</h2>
+                    <div class="ad-tools">
+                        <select class="ad-select" id="prodCatFilter" onchange="renderProducts()"><option value="all">All categories</option><option value="fish">Fish</option><option value="accessories">Accessories</option><option value="dog">Dog</option><option value="cat">Cat</option></select>
+                        <input class="ad-input" id="prodSearch" placeholder="Search products..." oninput="renderProducts()">
+                        <label style="display:flex;align-items:center;gap:6px;color:var(--ad-muted,#9aa09a);font-size:0.8rem;font-weight:600;cursor:pointer;white-space:nowrap;"><input type="checkbox" id="showArchived" onchange="renderProducts()"> Show archived</label>
+                        <button class="ad-btn ad-btn-primary" onclick="openProductModal()"><i class="bi bi-plus-lg"></i> Add Product</button>
+                    </div>
+                </div>
+                <div class="ad-table-wrap">
+                    <table class="ad-table">
+                        <thead><tr><th>Product</th><th>Category</th><th>Price</th><th>Stock</th><th>Status</th><th>Actions</th></tr></thead>
+                        <tbody id="productsBody"></tbody>
+                    </table>
+                </div>
+                <div class="ad-empty" id="productsEmpty" style="display:none;"><i class="bi bi-inbox"></i><p>No products found.</p></div>
+            </div>
+        </section>
+        <!-- ORDERS -->
+        <section class="ad-view" id="view-orders">
+            <div class="ad-card">
+                <div class="ad-card-head">
+                    <h2>Order Management</h2>
+                    <div class="ad-tools">
+                        <input class="ad-input" id="orderSearch" placeholder="Search order id / customer..." oninput="renderOrders()">
+                        <button class="ad-btn ad-btn-ghost ad-btn-sm" onclick="loadOrders()"><i class="bi bi-arrow-clockwise"></i> Refresh</button>
+                        <button class="ad-btn ad-btn-primary ad-btn-sm" onclick="openOfflineOrderModal()"><i class="bi bi-cart-plus"></i> Offline Order</button>
+                    </div>
+                </div>
+                <div class="ad-filters" id="orderFilters">
+                    <button class="ad-filter-pill active" data-status="all" onclick="setOrderFilter('all')">All</button>
+                    <button class="ad-filter-pill" data-status="pending" onclick="setOrderFilter('pending')">Pending</button>
+                    <button class="ad-filter-pill" data-status="processing" onclick="setOrderFilter('processing')">Processing</button>
+                    <button class="ad-filter-pill" data-status="shipped" onclick="setOrderFilter('shipped')">Shipped</button>
+                    <button class="ad-filter-pill" data-status="delivered" onclick="setOrderFilter('delivered')">Delivered</button>
+                    <button class="ad-filter-pill" data-status="cancelled" onclick="setOrderFilter('cancelled')">Cancelled</button>
+                </div>
+                <div class="ad-table-wrap">
+                    <table class="ad-table">
+                        <thead><tr><th>Order ID</th><th>Customer</th><th>Items</th><th>Total</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead>
+                        <tbody id="ordersBody"></tbody>
+                    </table>
+                </div>
+                <div class="ad-empty" id="ordersEmpty" style="display:none;"><i class="bi bi-inbox"></i><p>No orders found.</p></div>
+            </div>
+        </section>
+        <!-- USERS -->
+        <section class="ad-view" id="view-users">
+            <div class="ad-card">
+                <div class="ad-card-head">
+                    <h2>User Management</h2>
+                    <div class="ad-tools"><input class="ad-input" id="userSearch" placeholder="Search users..." oninput="renderUsers()"><button class="ad-btn ad-btn-ghost ad-btn-sm" onclick="exportUsers()"><i class="bi bi-download"></i> Export</button></div>
+                </div>
+                <div class="ad-table-wrap">
+                    <table class="ad-table">
+                        <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Status</th><th>Joined</th></tr></thead>
+                        <tbody id="usersBody"></tbody>
+                    </table>
+                </div>
+                <div class="ad-empty" id="usersEmpty" style="display:none;"><i class="bi bi-inbox"></i><p>No registered users yet.</p></div>
+            </div>
+        </section>
+
+        <!-- MESSAGES -->
+        <section class="ad-view" id="view-messages">
+            <div class="ad-card">
+                <div class="ad-card-head">
+                    <h2>Contact Messages</h2>
+                    <div class="ad-tools"><button class="ad-btn ad-btn-ghost ad-btn-sm" onclick="loadMessages()"><i class="bi bi-arrow-clockwise"></i> Refresh</button></div>
+                </div>
+                <div id="messagesList"></div>
+                <div class="ad-empty" id="messagesEmpty" style="display:none;"><i class="bi bi-envelope"></i><p>No messages yet.</p></div>
+            </div>
+        </section>
+
+        <!-- SETTINGS -->
+        <section class="ad-view" id="view-settings">
+            <div class="ad-grid-2">
+                <div class="ad-card">
+                    <div class="ad-card-head"><h2>Store Settings</h2></div>
+                    <div class="ad-field"><label>Store name</label><input class="ad-input" id="setName" value="AM SRI Petshop & Aquarium"></div>
+                    <div class="ad-row-2">
+                        <div class="ad-field"><label>Contact email</label><input class="ad-input" id="setEmail" value="nagasakthi779@gmail.com"></div>
+                        <div class="ad-field"><label>Contact phone</label><input class="ad-input" id="setPhone" value="+91 082484 07441"></div>
+                    </div>
+                    <div class="ad-field"><label>Currency</label><select class="ad-select" id="setCurrency"><option>INR (Rs)</option><option>USD ($)</option></select></div>
+                    <button class="ad-btn ad-btn-primary" onclick="saveSettings()"><i class="bi bi-check-lg"></i> Save Changes</button>
+                </div>
+                <div class="ad-card">
+                    <div class="ad-card-head"><h2>Reports &amp; Analytics</h2></div>
+                    <p style="color:var(--ad-muted);font-size:0.86rem;margin:0 0 16px;">Export your store data as CSV for accounting and analysis.</p>
+                    <div style="display:flex;flex-direction:column;gap:10px;">
+                        <button class="ad-btn ad-btn-ghost" onclick="exportOrders()"><i class="bi bi-file-earmark-spreadsheet"></i> Export Orders (CSV)</button>
+                        <button class="ad-btn ad-btn-ghost" onclick="exportProducts()"><i class="bi bi-file-earmark-spreadsheet"></i> Export Products (CSV)</button>
+                        <button class="ad-btn ad-btn-ghost" onclick="exportUsers()"><i class="bi bi-file-earmark-spreadsheet"></i> Export Users (CSV)</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+</div>
+
+<div class="ad-toast-wrap" id="adToastWrap"></div>
+<div class="ad-modal-bg" id="productModalBg">
+    <div class="ad-modal">
+        <div class="ad-modal-head"><h3 id="productModalTitle">Add Product</h3><button class="ad-modal-close" onclick="closeProductModal()">&times;</button></div>
+        <div class="ad-modal-body">
+            <input type="hidden" id="prodId">
+            <div class="ad-field"><label>Product name *</label><input class="ad-input" id="prodName" placeholder="e.g. Taiyo 100grms"></div>
+            <div class="ad-row-2">
+                <div class="ad-field"><label>Category *</label><select class="ad-select" id="prodCategory"><option value="fish">Fish</option><option value="accessories">Accessories</option><option value="dog">Dog</option><option value="cat">Cat</option></select></div>
+                <div class="ad-field"><label>Price (Rs) *</label><input class="ad-input" id="prodPrice" type="number" min="0" placeholder="0"></div>
+            </div>
+            <div class="ad-field"><label>Stock quantity *</label><input class="ad-input" id="prodStock" type="number" min="0" placeholder="0"></div>
+            <div class="ad-field"><label>Image URL</label><input class="ad-input" id="prodImage" placeholder="/images/product-xx.jpeg"></div>
+            <div class="ad-field"><label>Description</label><input class="ad-input" id="prodDescription" placeholder="Short product description"></div>
+        </div>
+        <div class="ad-modal-foot"><button class="ad-btn ad-btn-ghost" onclick="closeProductModal()">Cancel</button><button class="ad-btn ad-btn-primary" onclick="saveProduct()"><i class="bi bi-check-lg"></i> Save Product</button></div>
+    </div>
+</div>
+
+<div class="ad-modal-bg" id="orderModalBg">
+    <div class="ad-modal">
+        <div class="ad-modal-head"><h3>Order Details</h3><button class="ad-modal-close" onclick="closeOrderModal()">&times;</button></div>
+        <div class="ad-modal-body" id="orderModalBody"></div>
+        <div class="ad-modal-foot">
+            <select class="ad-select" id="orderStatusSelect" onchange="updateOrderStatus()"><option value="pending">Pending</option><option value="processing">Processing</option><option value="shipped">Shipped</option><option value="delivered">Delivered</option><option value="cancelled">Cancelled</option></select>
+            <button class="ad-btn ad-btn-ghost" onclick="closeOrderModal()">Close</button>
+        </div>
+    </div>
+</div>
+
+<div class="ad-modal-bg" id="offlineModalBg">
+    <div class="ad-modal">
+        <div class="ad-modal-head"><h3>Record Offline Order</h3><button class="ad-modal-close" onclick="closeOfflineOrderModal()">&times;</button></div>
+        <div class="ad-modal-body">
+            <div class="ad-row-2">
+                <div class="ad-field"><label>Customer name *</label><input class="ad-input" id="offName" placeholder="Walk-in customer"></div>
+                <div class="ad-field"><label>Phone</label><input class="ad-input" id="offPhone" placeholder="Phone number"></div>
+            </div>
+            <div class="ad-row-2">
+                <div class="ad-field"><label>Payment method</label><select class="ad-select" id="offPay"><option value="cash">Cash</option><option value="upi">UPI</option><option value="card">Card</option><option value="cod">COD</option></select></div>
+                <div class="ad-field"><label>Status</label><select class="ad-select" id="offStatus"><option value="delivered">Delivered</option><option value="processing">Processing</option><option value="pending">Pending</option></select></div>
+            </div>
+            <div class="ad-field"><label>Items *</label><div id="offItems"></div><button class="ad-btn ad-btn-ghost ad-btn-sm" onclick="addOffItem()"><i class="bi bi-plus-lg"></i> Add item</button></div>
+            <div class="ad-field"><label>Order total</label><div id="offTotal" style="font-size:1.2rem;font-weight:700;color:var(--ad-amber-light);">Rs0</div></div>
+        </div>
+        <div class="ad-modal-foot"><button class="ad-btn ad-btn-ghost" onclick="closeOfflineOrderModal()">Cancel</button><button class="ad-btn ad-btn-primary" onclick="saveOfflineOrder()"><i class="bi bi-check-lg"></i> Save Order</button></div>
+    </div>
+</div>
+
+<script src="/realtime.js"></script>
+<script>
+        let products = [];
+        let orders = [];
+        let users = [];
+        let currentOrderFilter = "all";
+        let currentOrderId = null;
+        let messages = [];
+        const ADMIN_EMAIL = "devdharrshans.23csd@kongu.edu";
+
+        function fmt(n) { return "Rs" + Math.round(n).toLocaleString("en-IN"); }
+        function escapeHtml(s) { return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"); }
+        function cap(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : ""; }
+
+        function toast(msg, type) {
+            type = type || "info";
+            const wrap = document.getElementById("adToastWrap");
+            const icons = { success: "bi-check-circle-fill", error: "bi-x-circle-fill", info: "bi-info-circle-fill" };
+            const el = document.createElement("div");
+            el.className = "ad-toast " + type;
+            el.innerHTML = '<i class="bi ' + icons[type] + '"></i><span>' + msg + '</span>';
+            wrap.appendChild(el);
+            requestAnimationFrame(() => el.classList.add("show"));
+            setTimeout(() => { el.classList.remove("show"); setTimeout(() => el.remove(), 400); }, 3000);
+        }
+
+        function checkAuth() {
+            const u = JSON.parse(localStorage.getItem("petshop_currentUser") || "null");
+            if (!u || u.email !== ADMIN_EMAIL) {
+                window.location.href = "/login.html";
+                return false;
+            }
+            const av = document.getElementById("adminAvatar");
+            if (av && u.name) av.textContent = u.name.charAt(0).toUpperCase();
+            return true;
+        }
+        function logout() {
+            localStorage.removeItem("petshop_currentUser");
+            window.location.href = "/login.html";
+        }
+
+        const VIEW_META = {
+            overview: { title: "Overview", sub: "Welcome back — here is what is happening today." },
+            products: { title: "Products", sub: "Manage your catalogue, stock and pricing." },
+            orders: { title: "Orders", sub: "View, filter and fulfil customer orders." },
+            users: { title: "Users", sub: "Registered customers and their roles." },
+            settings: { title: "Settings", sub: "Configure your store and export reports." },
+            messages: { title: "Messages", sub: "Customer messages from the contact form." }
+        };
+        function showView(name) {
+            document.querySelectorAll(".ad-view").forEach(v => v.classList.remove("active"));
+            document.querySelectorAll(".ad-nav a[data-view]").forEach(a => a.classList.remove("active"));
+            const view = document.getElementById("view-" + name);
+            if (view) view.classList.add("active");
+            const nav = document.querySelector('.ad-nav a[data-view="' + name + '"]');
+            if (nav) nav.classList.add("active");
+            document.getElementById("viewTitle").textContent = VIEW_META[name].title;
+            document.getElementById("viewSubtitle").textContent = VIEW_META[name].sub;
+            if (window.innerWidth < 860) document.getElementById("adSidebar").classList.remove("open");
+        }
+        function toggleSidebar() { document.getElementById("adSidebar").classList.toggle("open"); }
+
+        async function init() {
+            if (!checkAuth()) return;
+            await loadProducts();
+            await loadOrders();
+            loadUsers();
+            await loadMessages();
+            renderOverview();
+            renderProducts();
+            renderOrders();
+            renderUsers();
+        }
+        async function loadProducts() {
+            try { products = await (await fetch("/api/products?includeArchived=1")).json(); } catch (e) { products = []; }
+        }
+        async function loadOrders() {
+            try { orders = await (await fetch("/api/orders")).json(); } catch (e) { orders = []; }
+            renderOverview(); renderOrders();
+        }
+        function loadUsers() { users = JSON.parse(localStorage.getItem("petshop_users") || "[]"); }
+
+        async function loadMessages() {
+            try { messages = await (await fetch("/api/contact")).json(); } catch (e) { messages = []; }
+            renderMessages();
+        }
+        function renderMessages() {
+            const wrap = document.getElementById("messagesList");
+            const empty = document.getElementById("messagesEmpty");
+            if (!wrap) return;
+            if (!messages.length) { wrap.innerHTML = ""; empty.style.display = "block"; return; }
+            empty.style.display = "none";
+            wrap.innerHTML = messages.map(function (m) {
+                const d = m.createdAt ? new Date(m.createdAt).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "-";
+                return '<div style="padding:16px 20px;border-bottom:1px solid rgba(255,255,255,0.08);">' +
+                    '<div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;margin-bottom:4px;">' +
+                    '<strong style="color:var(--ad-text);">' + escapeHtml(m.name) + '</strong>' +
+                    '<span style="color:var(--ad-muted);font-size:0.76rem;">' + escapeHtml(m.email || "") + (m.phone ? ' &middot; ' + escapeHtml(m.phone) : '') + ' &middot; ' + escapeHtml(d) + '</span>' +
+                    '</div>' +
+                    '<div style="color:var(--ad-amber-light);font-size:0.86rem;font-weight:600;margin-bottom:6px;">' + escapeHtml(m.subject) + '</div>' +
+                    '<p style="color:var(--ad-muted);font-size:0.86rem;margin:0;white-space:pre-wrap;">' + escapeHtml(m.message) + '</p>' +
+                '</div>';
+            }).join("");
+        }
+
+        function productOptions() {
+            return products.filter(function (p) { return !p.archived; }).map(function (p) {
+                return '<option value="' + p.id + '" data-price="' + p.price + '">' + escapeHtml(p.name) + ' (Rs' + p.price + ')</option>';
+            }).join("");
+        }
+        function addOffItem() {
+            const wrap = document.getElementById("offItems");
+            if (!wrap) return;
+            const row = document.createElement("div");
+            row.className = "ad-row-2";
+            row.style.alignItems = "center";
+            row.innerHTML = '<select class="ad-select off-item-select" onchange="recalcOffTotal()">' + productOptions() + '</select>' +
+                '<input class="ad-input off-item-qty" type="number" min="1" value="1" style="width:80px;" oninput="recalcOffTotal()">' +
+                '<button class="ad-btn ad-btn-danger ad-btn-sm" onclick="this.parentElement.remove(); recalcOffTotal();"><i class="bi bi-trash"></i></button>';
+            wrap.appendChild(row);
+            recalcOffTotal();
+        }
+        function recalcOffTotal() {
+            let total = 0;
+            document.querySelectorAll("#offItems .off-item-select").forEach(function (sel) {
+                const opt = sel.options[sel.selectedIndex];
+                const price = Number(opt ? opt.getAttribute("data-price") : 0) || 0;
+                const qtyInput = sel.parentElement.querySelector(".off-item-qty");
+                const qty = Math.max(1, Number(qtyInput ? qtyInput.value : 0) || 1);
+                total += price * qty;
+            });
+            document.getElementById("offTotal").textContent = fmt(total);
+        }
+        function openOfflineOrderModal() {
+            if (!products.length) { toast("Products not loaded yet", "error"); return; }
+            document.getElementById("offItems").innerHTML = "";
+            document.getElementById("offName").value = "";
+            document.getElementById("offPhone").value = "";
+            addOffItem();
+            document.getElementById("offlineModalBg").classList.add("show");
+        }
+        function closeOfflineOrderModal() { document.getElementById("offlineModalBg").classList.remove("show"); }
+        async function saveOfflineOrder() {
+            const customerName = document.getElementById("offName").value.trim();
+            if (!customerName) { toast("Customer name is required", "error"); return; }
+            const items = [];
+            document.querySelectorAll("#offItems .off-item-select").forEach(function (sel) {
+                const qtyInput = sel.parentElement.querySelector(".off-item-qty");
+                items.push({ id: Number(sel.value), quantity: Math.max(1, Number(qtyInput ? qtyInput.value : 0) || 1) });
+            });
+            if (!items.length) { toast("Add at least one item", "error"); return; }
+            const payload = {
+                customerName: customerName,
+                customerPhone: document.getElementById("offPhone").value.trim(),
+                paymentMethod: document.getElementById("offPay").value,
+                status: document.getElementById("offStatus").value,
+                items: items
+            };
+            try {
+                const res = await fetch("/api/orders/offline", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+                const data = await res.json();
+                if (!res.ok || !data.success) { toast(data.message || "Failed to save order", "error"); return; }
+                toast("Offline order saved", "success");
+                closeOfflineOrderModal();
+                await loadOrders();
+                loadProducts();
+            } catch (e) { toast("Network error", "error"); }
+        }
+
+        async function renderOverview() {
+            let stats = { totalRevenue: 0, totalOrders: 0, totalProducts: products.length, totalUsers: users.length, statusCounts: {}, revenueSeries: [], categoryRevenue: {}, lowStock: [], avgOrderValue: 0 };
+            try {
+                const res = await fetch("/api/stats", { headers: { "x-user-count": String(users.length) } });
+                if (res.ok) stats = await res.json();
+            } catch (e) {}
+            document.getElementById("statRevenue").textContent = fmt(stats.totalRevenue || 0);
+            document.getElementById("statOrders").textContent = stats.totalOrders || 0;
+            document.getElementById("statProducts").textContent = stats.totalProducts || products.length;
+            document.getElementById("statUsers").textContent = stats.totalUsers || users.length;
+            document.getElementById("avgOrder").textContent = "Avg order " + fmt(stats.avgOrderValue || 0);
+            renderChart(stats.revenueSeries || []);
+            renderStatusBreakdown(stats.statusCounts || {});
+            renderCategoryBreakdown(stats.categoryRevenue || {});
+            renderLowStock(stats.lowStock || []);
+        }
+
+        function renderChart(series) {
+            const max = Math.max.apply(null, series.length ? series.map(s => s.revenue) : [1]) || 1;
+            const chart = document.getElementById("revenueChart");
+            chart.innerHTML = series.map(function (d) {
+                const h = Math.max(4, Math.round((d.revenue / max) * 180));
+                return '<div class="ad-chart-col"><div class="ad-chart-bar" style="height:' + h + 'px"><span>' + fmt(d.revenue) + '</span></div><div class="ad-chart-label">' + d.label + '</div></div>';
+            }).join("") || '<div class="ad-empty"><p>No revenue data yet.</p></div>';
+        }
+
+        function renderStatusBreakdown(counts) {
+            const labels = { pending: "Pending", processing: "Processing", shipped: "Shipped", delivered: "Delivered", cancelled: "Cancelled" };
+            const total = Object.values(counts).reduce((a, b) => a + b, 0) || 1;
+            const el = document.getElementById("statusBreakdown");
+            el.innerHTML = Object.keys(labels).map(function (k) {
+                const c = counts[k] || 0;
+                const pct = Math.round((c / total) * 100);
+                return '<div class="ad-cat-row"><div class="ad-cat-name"><span class="ad-badge ' + k + '">' + labels[k] + '</span></div><div class="ad-cat-bar"><i style="width:' + pct + '%"></i></div><b>' + c + '</b></div>';
+            }).join("");
+        }
+
+        function renderCategoryBreakdown(cats) {
+            const entries = Object.keys(cats).map(k => ({ name: k, value: cats[k] }));
+            const max = Math.max.apply(null, entries.length ? entries.map(e => e.value) : [1]) || 1;
+            const el = document.getElementById("categoryBreakdown");
+            el.innerHTML = entries.length ? entries.map(function (e) {
+                const pct = Math.round((e.value / max) * 100);
+                return '<div class="ad-cat-row"><div class="ad-cat-name">' + cap(e.name) + '</div><div class="ad-cat-bar"><i style="width:' + pct + '%"></i></div><b>' + fmt(e.value) + '</b></div>';
+            }).join("") : '<div class="ad-empty"><p>No sales recorded yet.</p></div>';
+        }
+
+        function renderLowStock(list) {
+            const el = document.getElementById("lowStockList");
+            if (!list.length) { el.innerHTML = '<div class="ad-empty"><p>All products well stocked.</p></div>'; return; }
+            el.innerHTML = list.map(function (p) {
+                const cls = p.stock <= 0 ? "stock-out" : "stock-low";
+                const txt = p.stock <= 0 ? "Out of stock" : "Only " + p.stock + " left";
+                return '<div class="ad-cat-row"><div class="ad-cat-name" style="flex:1;">' + escapeHtml(p.name) + '</div><span class="ad-badge ' + cls + '">' + txt + '</span></div>';
+            }).join("");
+        }
+        // ADMIN_SCRIPT_3
+        function renderProducts() {
+            const cat = document.getElementById("prodCatFilter").value;
+            const q = (document.getElementById("prodSearch").value || "").toLowerCase();
+            const showArchived = document.getElementById("showArchived") && document.getElementById("showArchived").checked;
+            let list = products.filter(p => showArchived ? p.archived : !p.archived);
+            if (cat !== "all") list = list.filter(p => p.category === cat);
+            if (q) list = list.filter(p => p.name.toLowerCase().indexOf(q) !== -1);
+            const body = document.getElementById("productsBody");
+            const empty = document.getElementById("productsEmpty");
+            if (!list.length) { body.innerHTML = ""; empty.style.display = "block"; return; }
+            empty.style.display = "none";
+            body.innerHTML = list.map(function (p) {
+                const stock = p.stock || 0;
+                const cls = stock <= 0 ? "stock-out" : (stock <= 5 ? "stock-low" : "stock-ok");
+                const txt = stock <= 0 ? "Out of stock" : (stock <= 5 ? "Low" : "OK");
+                // One-click stock toggle: mark out of stock, or restock back in
+                const stockBtn = stock <= 0
+                    ? '<button class="ad-btn ad-btn-ghost ad-btn-sm" title="Mark in stock" onclick="markInStock(' + p.id + ')"><i class="bi bi-box-seam"></i> In Stock</button> '
+                    : '<button class="ad-btn ad-btn-ghost ad-btn-sm" title="Mark out of stock" onclick="markOutOfStock(' + p.id + ')"><i class="bi bi-slash-circle"></i> Out of Stock</button> ';
+                const restoreBtn = p.archived
+                    ? '<button class="ad-btn ad-btn-ghost ad-btn-sm" title="Restore to shop" onclick="restoreProduct(' + p.id + ')"><i class="bi bi-arrow-counterclockwise"></i></button> '
+                    : '';
+                return '<tr' + (p.archived ? ' style="opacity:0.55;"' : '') + '><td><div class="ad-prod-cell"><img src="' + p.image + '" onerror="this.src=\'/images/logo.jpeg\'"><div><b>' + escapeHtml(p.name) + '</b><span>' + cap(p.category) + (p.archived ? ' · archived' : '') + '</span></div></div></td>' +
+                    '<td>' + cap(p.category) + '</td><td class="ad-mono">' + fmt(p.price) + '</td><td>' + stock + '</td>' +
+                    '<td><span class="ad-badge ' + cls + '">' + txt + '</span></td>' +
+                    '<td>' + stockBtn +
+                    '<button class="ad-btn ad-btn-ghost ad-btn-sm" title="Edit product" onclick="openProductModal(' + p.id + ')"><i class="bi bi-pencil"></i></button> ' +
+                    restoreBtn +
+                    '<button class="ad-btn ad-btn-danger ad-btn-sm" title="' + (p.archived ? 'Permanently remove' : 'Delete product') + '" onclick="deleteProduct(' + p.id + ')"><i class="bi bi-trash"></i></button></td></tr>';
+            }).join("");
+        }
+
+        function openProductModal(id) {
+            const bg = document.getElementById("productModalBg");
+            document.getElementById("prodId").value = id || "";
+            if (id) {
+                const p = products.find(x => Number(x.id) === Number(id));
+                if (!p) return;
+                document.getElementById("productModalTitle").textContent = "Edit Product";
+                document.getElementById("prodName").value = p.name;
+                document.getElementById("prodCategory").value = p.category;
+                document.getElementById("prodPrice").value = p.price;
+                document.getElementById("prodStock").value = p.stock || 0;
+                document.getElementById("prodImage").value = p.image;
+                document.getElementById("prodDescription").value = p.description || "";
+            } else {
+                document.getElementById("productModalTitle").textContent = "Add Product";
+                ["prodName", "prodPrice", "prodStock", "prodImage", "prodDescription"].forEach(i => document.getElementById(i).value = "");
+                document.getElementById("prodCategory").value = "fish";
+            }
+            bg.classList.add("show");
+        }
+        function closeProductModal() { document.getElementById("productModalBg").classList.remove("show"); }
+
+        async function saveProduct() {
+            const id = document.getElementById("prodId").value;
+            const name = document.getElementById("prodName").value.trim();
+            const price = Number(document.getElementById("prodPrice").value);
+            if (!name || isNaN(price)) { toast("Name and price are required", "error"); return; }
+            const payload = {
+                name: name, category: document.getElementById("prodCategory").value,
+                price: price, stock: Number(document.getElementById("prodStock").value) || 0,
+                image: document.getElementById("prodImage").value.trim() || "/images/logo.jpeg",
+                description: document.getElementById("prodDescription").value.trim()
+            };
+            try {
+                const url = id ? "/api/products/" + id : "/api/products";
+                const method = id ? "PUT" : "POST";
+                const res = await fetch(url, { method: method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+                const data = await res.json();
+                if (!res.ok || !data.success) { toast(data.message || "Save failed", "error"); return; }
+                toast(id ? "Product updated" : "Product added", "success");
+                closeProductModal();
+                await loadProducts(); renderProducts(); renderOverview();
+            } catch (e) { toast("Network error", "error"); }
+        }
+
+        async function deleteProduct(id) {
+            if (!confirm("Delete this product? It will be hidden from the shop. You can restore it later via the 'Show archived' toggle.")) return;
+            try {
+                const res = await fetch("/api/products/" + id, { method: "DELETE" });
+                const data = await res.json();
+                if (!res.ok || !data.success) { toast(data.message || "Delete failed", "error"); return; }
+                toast("Product archived", "success");
+                await loadProducts(); renderProducts(); renderOverview();
+            } catch (e) { toast("Network error", "error"); }
+        }
+        // ── Quick stock controls ──
+        // One click to mark a product out of stock (no need to open the editor)
+        async function markOutOfStock(id) {
+            const p = products.find(x => Number(x.id) === Number(id));
+            if (!p) return;
+            try {
+                const res = await fetch("/api/products/" + id, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ stock: 0 }) });
+                const data = await res.json();
+                if (!res.ok || !data.success) { toast(data.message || "Could not update stock", "error"); return; }
+                toast(p.name + " marked out of stock", "success");
+                await loadProducts(); renderProducts(); renderOverview();
+            } catch (e) { toast("Network error", "error"); }
+        }
+
+        // Mark an out-of-stock product back in stock — asks for the restock quantity
+        async function markInStock(id) {
+            const p = products.find(x => Number(x.id) === Number(id));
+            if (!p) return;
+            const qty = prompt('Restock quantity for "' + p.name + '":', "10");
+            if (qty === null) return;
+            const stock = Number(qty);
+            if (isNaN(stock) || stock < 0) { toast("Enter a valid quantity", "error"); return; }
+            try {
+                const res = await fetch("/api/products/" + id, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ stock: stock }) });
+                const data = await res.json();
+                if (!res.ok || !data.success) { toast(data.message || "Could not update stock", "error"); return; }
+                toast(p.name + " is back in stock (" + stock + " units)", "success");
+                await loadProducts(); renderProducts(); renderOverview();
+            } catch (e) { toast("Network error", "error"); }
+        }
+
+        // Bring an archived (deleted) product back to the shop
+        async function restoreProduct(id) {
+            const p = products.find(x => Number(x.id) === Number(id));
+            try {
+                const res = await fetch("/api/products/" + id, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ archived: false }) });
+                const data = await res.json();
+                if (!res.ok || !data.success) { toast(data.message || "Restore failed", "error"); return; }
+                toast((p ? p.name : "Product") + " restored — set its stock if needed", "success");
+                await loadProducts(); renderProducts(); renderOverview();
+            } catch (e) { toast("Network error", "error"); }
+        }
+        // ADMIN_SCRIPT_4
+        function setOrderFilter(status) {
+            currentOrderFilter = status;
+            document.querySelectorAll("#orderFilters .ad-filter-pill").forEach(p => p.classList.remove("active"));
+            const pill = document.querySelector('#orderFilters .ad-filter-pill[data-status="' + status + '"]');
+            if (pill) pill.classList.add("active");
+            renderOrders();
+        }
+
+        function renderOrders() {
+            const q = (document.getElementById("orderSearch").value || "").toLowerCase();
+            let list = orders;
+            if (currentOrderFilter !== "all") list = list.filter(o => o.status === currentOrderFilter);
+            if (q) list = list.filter(o => (o.orderId || "").toLowerCase().indexOf(q) !== -1 || (o.customerName || "").toLowerCase().indexOf(q) !== -1);
+            const body = document.getElementById("ordersBody");
+            const empty = document.getElementById("ordersEmpty");
+            if (!list.length) { body.innerHTML = ""; empty.style.display = "block"; return; }
+            empty.style.display = "none";
+            body.innerHTML = list.map(function (o) {
+                return '<tr><td class="ad-mono">#' + escapeHtml(o.orderId) + '</td><td>' + escapeHtml(o.customerName) + '<br><span style="color:var(--ad-muted);font-size:0.76rem;">' + escapeHtml(o.customerPhone || "") + '</span></td>' +
+                    '<td>' + (o.items ? o.items.length : 0) + '</td><td class="ad-mono">' + fmt(o.total) + '</td>' +
+                    '<td><span class="ad-badge ' + o.status + '">' + cap(o.status) + '</span></td>' +
+                    '<td style="color:var(--ad-muted);font-size:0.8rem;">' + new Date(o.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short" }) + '</td>' +
+                    '<td><button class="ad-btn ad-btn-ghost ad-btn-sm" onclick="viewOrder(\'' + o.orderId + '\')"><i class="bi bi-eye"></i></button> ' +
+                    '<button class="ad-btn ad-btn-danger ad-btn-sm" onclick="deleteOrder(\'' + o.orderId + '\')"><i class="bi bi-trash"></i></button></td></tr>';
+            }).join("");
+        }
+        function viewOrder(orderId) {
+            const o = orders.find(x => x.orderId === orderId);
+            if (!o) return;
+            currentOrderId = orderId;
+            document.getElementById("orderStatusSelect").value = o.status;
+            const items = (o.items || []).map(function (it) {
+                return '<div class="ad-cat-row"><div class="ad-cat-name" style="flex:1;">' + escapeHtml(it.name) + ' <span style="color:var(--ad-muted)">x' + it.quantity + '</span></div><b>' + fmt(it.price * it.quantity) + '</b></div>';
+            }).join("");
+            document.getElementById("orderModalBody").innerHTML =
+                '<div class="ad-field"><label>Customer</label><div style="color:var(--ad-text);">' + escapeHtml(o.customerName) + '</div></div>' +
+                '<div class="ad-row-2"><div class="ad-field"><label>Email</label><div style="color:var(--ad-text);">' + escapeHtml(o.customerEmail || "-") + '</div></div>' +
+                '<div class="ad-field"><label>Phone</label><div style="color:var(--ad-text);">' + escapeHtml(o.customerPhone || "-") + '</div></div></div>' +
+                '<div class="ad-field"><label>Shipping address</label><div style="color:var(--ad-text);font-size:0.86rem;">' + escapeHtml(o.shippingAddress || "-") + '</div></div>' +
+                '<div class="ad-row-2"><div class="ad-field"><label>Payment</label><div style="color:var(--ad-text);">' + cap(o.paymentMethod || "cod") + '</div></div>' +
+                '<div class="ad-field"><label>Delivery</label><div style="color:var(--ad-text);">' + cap(o.deliveryMethod || "standard") + '</div></div></div>' +
+                '<div class="ad-field"><label>Items</label>' + (items || '<div class="ad-empty"><p>No items</p></div>') + '</div>' +
+                '<div class="ad-cat-row" style="margin-top:10px;"><div class="ad-cat-name">Subtotal</div><b>' + fmt(o.subtotal) + '</b></div>' +
+                '<div class="ad-cat-row"><div class="ad-cat-name">Shipping</div><b>' + fmt(o.shipping) + '</b></div>' +
+                '<div class="ad-cat-row"><div class="ad-cat-name">Tax</div><b>' + fmt(o.tax) + '</b></div>' +
+                (o.discount ? '<div class="ad-cat-row"><div class="ad-cat-name">Discount</div><b>-' + fmt(o.discount) + '</b></div>' : '') +
+                '<div class="ad-cat-row"><div class="ad-cat-name" style="color:var(--ad-amber-light);">Total</div><b style="color:var(--ad-amber-light);">' + fmt(o.total) + '</b></div>' +
+                (o.trackingNumber ? '<div class="ad-field" style="margin-top:10px;"><label>Tracking number</label><div class="ad-mono">' + o.trackingNumber + '</div></div>' : '');
+            document.getElementById("orderModalBg").classList.add("show");
+        }
+        function closeOrderModal() { document.getElementById("orderModalBg").classList.remove("show"); currentOrderId = null; }
+
+        async function updateOrderStatus() {
+            if (!currentOrderId) return;
+            const status = document.getElementById("orderStatusSelect").value;
+            try {
+                const res = await fetch("/api/orders/" + currentOrderId + "/status", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status: status }) });
+                const data = await res.json();
+                if (!res.ok || !data.success) { toast(data.message || "Update failed", "error"); return; }
+                toast("Order status updated to " + cap(status), "success");
+                await loadOrders();
+            } catch (e) { toast("Network error", "error"); }
+        }
+
+        async function deleteOrder(orderId) {
+            if (!confirm("Delete this order permanently?")) return;
+            try {
+                const res = await fetch("/api/orders/" + orderId, { method: "DELETE" });
+                const data = await res.json();
+                if (!res.ok || !data.success) { toast(data.message || "Delete failed", "error"); return; }
+                toast("Order deleted", "success");
+                await loadOrders();
+            } catch (e) { toast("Network error", "error"); }
+        }
+        function renderUsers() {
+            const q = (document.getElementById("userSearch").value || "").toLowerCase();
+            let list = users;
+            if (q) list = users.filter(u => (u.name || "").toLowerCase().indexOf(q) !== -1 || (u.email || "").toLowerCase().indexOf(q) !== -1);
+            const body = document.getElementById("usersBody");
+            const empty = document.getElementById("usersEmpty");
+            if (!list.length) { body.innerHTML = ""; empty.style.display = "block"; return; }
+            empty.style.display = "none";
+            body.innerHTML = list.map(function (u) {
+                const isAdmin = u.email === ADMIN_EMAIL;
+                const role = isAdmin ? '<span class="ad-badge role-admin">Admin</span>' : '<span class="ad-badge role-user">Customer</span>';
+                const joined = u.createdAt ? new Date(u.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : "-";
+                return '<tr><td>' + escapeHtml(u.name || "-") + '</td><td>' + escapeHtml(u.email || "-") + '</td><td>' + role + '</td><td><span class="ad-badge stock-ok">Active</span></td><td style="color:var(--ad-muted);font-size:0.8rem;">' + joined + '</td></tr>';
+            }).join("");
+        }
+
+        function saveSettings() {
+            const settings = { name: document.getElementById("setName").value, email: document.getElementById("setEmail").value, phone: document.getElementById("setPhone").value, currency: document.getElementById("setCurrency").value };
+            localStorage.setItem("amSriSettings", JSON.stringify(settings));
+            toast("Settings saved", "success");
+        }
+
+        function downloadCSV(filename, rows) {
+            const csv = rows.map(function (r) { return r.map(function (c) { return '"' + String(c == null ? "" : c).replace(/"/g, '""') + '"'; }).join(","); }).join("\n");
+            const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a"); a.href = url; a.download = filename; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+            toast("Exported " + filename, "success");
+        }
+        function exportOrders() {
+            if (!orders.length) { toast("No orders to export", "info"); return; }
+            const rows = [["Order ID", "Customer", "Email", "Phone", "Items", "Subtotal", "Shipping", "Tax", "Discount", "Total", "Status", "Payment", "Date"]];
+            orders.forEach(function (o) { rows.push([o.orderId, o.customerName, o.customerEmail, o.customerPhone, o.items ? o.items.length : 0, o.subtotal, o.shipping, o.tax, o.discount, o.total, o.status, o.paymentMethod, o.createdAt]); });
+            downloadCSV("am-sri-orders.csv", rows);
+        }
+        function exportProducts() {
+            if (!products.length) { toast("No products to export", "info"); return; }
+            const rows = [["ID", "Name", "Category", "Price", "Stock", "Image"]];
+            products.filter(p => !p.archived).forEach(function (p) { rows.push([p.id, p.name, p.category, p.price, p.stock, p.image]); });
+            downloadCSV("am-sri-products.csv", rows);
+        }
+        function exportUsers() {
+            if (!users.length) { toast("No users to export", "info"); return; }
+            const rows = [["Name", "Email", "Role", "Joined"]];
+            users.forEach(function (u) { rows.push([u.name, u.email, u.email === ADMIN_EMAIL ? "Admin" : "Customer", u.createdAt || "-"]); });
+            downloadCSV("am-sri-users.csv", rows);
+        }
+
+        // Initialize Realtime connection for admin dashboard
+        let adminRealtime = new Realtime({ channel: "admin", onStatus: function (connected) {
+            const status = document.getElementById("realtimeStatus");
+            if (!status) return;
+            status.classList.toggle("offline", !connected);
+            status.innerHTML = "<i></i> " + (connected ? "Live order sync" : "Reconnecting…");
+        } });
+        adminRealtime.connect();
+        
+        // Listen for new orders
+        adminRealtime.on("order:new", function(payload) {
+            const newOrder = payload.order;
+            orders.unshift(newOrder); // Add to beginning of orders array
+            
+            // Show browser notification if supported
+            if ("Notification" in window && Notification.permission === "granted") {
+                new Notification("New Order Received!", {
+                    body: `Order #${newOrder.orderId} - ₹${newOrder.total}`,
+                    icon: "/images/logo.jpeg"
+                });
+            }
+            
+            // Play alert sound and show toast
+            playOrderAlert();
+            toast(`New order received: #${newOrder.orderId}`, "success");
+            
+            // Update badge in navigation
+            updateNewOrderBadge();
+            
+            // If we're on the orders view, refresh the display
+            if (document.getElementById("view-orders").classList.contains("active")) {
+                renderOrders();
+                loadStats();
+            }
+        });
+        
+        // Listen for order status updates
+        adminRealtime.on("order:status", function(payload) {
+            const orderIndex = orders.findIndex(o => o.orderId === payload.orderId);
+            if (orderIndex !== -1) {
+                orders[orderIndex].status = payload.status;
+                if (payload.trackingNumber) {
+                    orders[orderIndex].trackingNumber = payload.trackingNumber;
+                }
+                // Refresh if on orders view
+                if (document.getElementById("view-orders").classList.contains("active")) {
+                    renderOrders();
+                    loadStats();
+                }
+            }
+        });
+        
+        // Request notification permissions on page load
+        if ("Notification" in window && Notification.permission === "default") {
+            Notification.requestPermission();
+        }
+        
+        // Add order notification badge to orders nav item
+        function updateNewOrderBadge() {
+            const ordersNav = document.querySelector('a[data-view="orders"]');
+            let badge = ordersNav.querySelector('.nav-badge');
+            if (!badge) {
+                badge = document.createElement('span');
+                badge.className = 'nav-badge';
+                badge.style.cssText = 'background: #ef4444; color: white; font-size: 0.65rem; padding: 2px 6px; border-radius: 10px; margin-left: 8px;';
+                ordersNav.appendChild(badge);
+            }
+            // Increment badge count
+            const currentCount = parseInt(badge.textContent) || 0;
+            badge.textContent = currentCount + 1;
+        }
+        
+        // Play alert sound for new orders
+        function playOrderAlert() {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            oscillator.frequency.value = 800;
+            oscillator.type = 'sine';
+            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.5);
+        }
+        
+        // Clear badge when viewing orders
+        const originalShowView = showView;
+        showView = function(view) {
+            originalShowView(view);
+            if (view === 'orders') {
+                const badge = document.querySelector('.nav-badge');
+                if (badge) badge.remove();
+            }
+        };
+
+        // auto-refresh orders every 20s so new orders appear in admin
+        setInterval(function () { if (document.getElementById("view-orders").classList.contains("active")) loadOrders(); }, 20000);
+
+        init();
+</script>
+</body>
+</html>

@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Orders | AM SRI Petshop & Aquarium</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="ecommerce.css">
+    <style>
+        :root {
+            --mo-bg: #0a0a0a;
+            --mo-card: rgba(23, 23, 23, 0.85);
+            --mo-border: rgba(220, 38, 38, 0.28);
+            --mo-border-soft: rgba(255, 255, 255, 0.08);
+            --mo-text: #f3f4f6;
+            --mo-muted: #9ca3af;
+            --mo-red: #dc2626;
+            --mo-red-bright: #ef4444;
+            --mo-green: #22c55e;
+            --mo-amber: #f59e0b;
+            --mo-blue: #3b82f6;
+            --mo-gray: #6b7280;
+        }
+        .mo-page {
+            font-family: 'Inter', 'DM Sans', sans-serif;
+            background: var(--mo-bg);
+            color: var(--mo-text);
+            min-height: 100vh;
+            overflow-x: hidden;
+            background-image:
+                radial-gradient(ellipse 60% 40% at 50% -10%, rgba(220, 38, 38, 0.18), transparent),
+                radial-gradient(ellipse 50% 40% at 90% 110%, rgba(220, 38, 38, 0.10), transparent);
+        }
+        .mo-shell {
+            max-width: 1080px;
+            margin: 0 auto;
+            padding: clamp(32px, 5vw, 60px) clamp(16px, 4vw, 40px);
+            position: relative;
+            z-index: 2;
+        }
+        .mo-header {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 36px;
+            animation: moRise 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+        }
+        .mo-eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--mo-red-bright);
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+        .mo-title {
+            font-size: clamp(2rem, 5vw, 3rem);
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            margin: 0 0 8px;
+            background: linear-gradient(120deg, #fff, var(--mo-red-bright));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .mo-subtitle { color: var(--mo-muted); font-size: 1.02rem; margin: 0; }
+        .mo-user-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 16px;
+            background: var(--mo-card);
+            border: 1px solid var(--mo-border);
+            border-radius: 999px;
+            font-size: 0.85rem;
+            color: var(--mo-muted);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+        .mo-user-chip i { color: var(--mo-red-bright); font-size: 1.1rem; }
+        .mo-user-chip strong { color: var(--mo-text); }
+        .mo-stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 32px;
+            animation: moRise 0.7s 0.05s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+        }
+        .mo-stat {
+            background: var(--mo-card);
+            border: 1px solid var(--mo-border-soft);
+            border-radius: 16px;
+            padding: 20px;
+            backdrop-filter: blur(22px);
+            -webkit-backdrop-filter: blur(22px);
+            transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .mo-stat::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(220, 38, 38, 0.12), transparent 60%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .mo-stat:hover { transform: translateY(-4px); border-color: var(--mo-border); box-shadow: 0 18px 40px rgba(0,0,0,0.5); }
+        .mo-stat:hover::before { opacity: 1; }
+        .mo-stat-icon {
+            width: 42px; height: 42px;
+            border-radius: 12px;
+            display: grid; place-items: center;
+            font-size: 1.3rem;
+            margin-bottom: 14px;
+            position: relative;
+        }
+        .mo-stat-icon.red { background: rgba(220, 38, 38, 0.15); color: var(--mo-red-bright); }
+        .mo-stat-icon.green { background: rgba(34, 197, 94, 0.15); color: var(--mo-green); }
+        .mo-stat-icon.amber { background: rgba(245, 158, 11, 0.15); color: var(--mo-amber); }
+        .mo-stat-icon.blue { background: rgba(59, 130, 246, 0.15); color: var(--mo-blue); }
+        .mo-stat-value { font-size: 1.75rem; font-weight: 800; line-height: 1; position: relative; }
+        .mo-stat-label { color: var(--mo-muted); font-size: 0.78rem; margin-top: 6px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; }
+
+        .mo-tabs {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 24px;
+            animation: moRise 0.7s 0.1s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+        }
+        .mo-tab {
+            padding: 9px 18px;
+            border-radius: 999px;
+            border: 1px solid var(--mo-border-soft);
+            background: transparent;
+            color: var(--mo-muted);
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+        .mo-tab:hover { color: var(--mo-text); border-color: var(--mo-border); }
+        .mo-tab.active {
+            background: linear-gradient(135deg, var(--mo-red), var(--mo-red-bright));
+            color: #fff;
+            border-color: transparent;
+            box-shadow: 0 8px 20px rgba(220, 38, 38, 0.35);
+        }
+
+        .mo-list { display: flex; flex-direction: column; gap: 18px; }
+        .mo-card {
+            background: var(--mo-card);
+            border: 1px solid var(--mo-border-soft);
+            border-radius: 18px;
+            overflow: hidden;
+            backdrop-filter: blur(22px);
+            -webkit-backdrop-filter: blur(22px);
+            transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+            animation: moRise 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+        }
+        .mo-card:hover { border-color: var(--mo-border); box-shadow: 0 20px 50px rgba(0,0,0,0.55); transform: translateY(-3px); }
+        .mo-card-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+            padding: 18px 22px;
+            border-bottom: 1px solid var(--mo-border-soft);
+            background: rgba(0, 0, 0, 0.25);
+        }
+        .mo-card-head-left { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+        .mo-order-id {
+            font-family: 'JetBrains Mono', 'Inter', monospace;
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: var(--mo-text);
+            letter-spacing: 0.02em;
+        }
+        .mo-order-id i { color: var(--mo-red-bright); margin-right: 6px; }
+        .mo-date { color: var(--mo-muted); font-size: 0.8rem; display: inline-flex; align-items: center; gap: 6px; }
+        .mo-pay { color: var(--mo-muted); font-size: 0.78rem; text-transform: capitalize; }
+
+        .mo-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 12px;
+            border-radius: 999px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+        .mo-badge.processing { background: rgba(245, 158, 11, 0.15); color: var(--mo-amber); border: 1px solid rgba(245, 158, 11, 0.35); }
+        .mo-badge.shipped { background: rgba(59, 130, 246, 0.15); color: var(--mo-blue); border: 1px solid rgba(59, 130, 246, 0.35); }
+        .mo-badge.delivered { background: rgba(34, 197, 94, 0.15); color: var(--mo-green); border: 1px solid rgba(34, 197, 94, 0.35); }
+        .mo-badge.cancelled { background: rgba(239, 68, 68, 0.15); color: var(--mo-red-bright); border: 1px solid rgba(239, 68, 68, 0.35); }
+        .mo-badge.pending { background: rgba(107, 114, 128, 0.15); color: var(--mo-gray); border: 1px solid rgba(107, 114, 128, 0.35); }
+        .mo-card-body { padding: 18px 22px; }
+        .mo-items { display: flex; flex-direction: column; gap: 12px; margin-bottom: 16px; }
+        .mo-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 10px 12px;
+            border-radius: 12px;
+            background: rgba(0, 0, 0, 0.22);
+        }
+        .mo-item img {
+            width: 52px; height: 52px;
+            border-radius: 10px;
+            object-fit: cover;
+            flex-shrink: 0;
+            border: 1px solid var(--mo-border-soft);
+            background: #1e1e1e;
+        }
+        .mo-item-info { flex: 1; min-width: 0; }
+        .mo-item-name { font-size: 0.88rem; font-weight: 600; color: var(--mo-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .mo-item-qty { font-size: 0.75rem; color: var(--mo-muted); }
+        .mo-item-price { font-size: 0.9rem; font-weight: 700; color: var(--mo-text); white-space: nowrap; }
+
+        .mo-card-foot {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 14px;
+            padding-top: 16px;
+            border-top: 1px solid var(--mo-border-soft);
+        }
+        .mo-total-wrap { display: flex; align-items: center; gap: 10px; }
+        .mo-total-label { color: var(--mo-muted); font-size: 0.8rem; }
+        .mo-total { font-size: 1.2rem; font-weight: 800; color: var(--mo-red-bright); }
+        .mo-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+        .mo-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 10px 18px;
+            border-radius: 11px;
+            border: none;
+            font-weight: 700;
+            font-size: 0.82rem;
+            cursor: pointer;
+            text-decoration: none;
+            transition: transform 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
+        }
+        .mo-btn:active { transform: scale(0.97); }
+        .mo-btn-primary {
+            background: linear-gradient(135deg, var(--mo-red), var(--mo-red-bright));
+            color: #fff;
+            box-shadow: 0 8px 18px rgba(220, 38, 38, 0.35);
+        }
+        .mo-btn-primary:hover { transform: translateY(-2px); box-shadow: 0 14px 28px rgba(220, 38, 38, 0.5); color: #fff; }
+        .mo-btn-ghost { background: transparent; border: 1px solid var(--mo-border); color: var(--mo-text); }
+        .mo-btn-ghost:hover { border-color: var(--mo-red-bright); background: rgba(220, 38, 38, 0.12); color: var(--mo-text); }
+
+        .mo-empty {
+            text-align: center;
+            padding: clamp(48px, 8vw, 80px) 24px;
+            animation: moRise 0.6s ease both;
+        }
+        .mo-empty-icon {
+            width: 96px; height: 96px;
+            margin: 0 auto 22px;
+            border-radius: 50%;
+            display: grid; place-items: center;
+            font-size: 2.7rem;
+            background: rgba(220, 38, 38, 0.12);
+            border: 1px solid var(--mo-border);
+            color: var(--mo-red-bright);
+            animation: moPulse 3s ease-in-out infinite;
+        }
+        .mo-empty h3 { font-weight: 800; margin-bottom: 10px; }
+        .mo-empty p { color: var(--mo-muted); margin-bottom: 24px; }
+
+        .mo-skeleton {
+            background: var(--mo-card);
+            border: 1px solid var(--mo-border-soft);
+            border-radius: 18px;
+            padding: 22px;
+            height: 180px;
+            position: relative;
+            overflow: hidden;
+        }
+        .mo-skeleton::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.06), transparent);
+            animation: moShimmer 1.4s infinite;
+        }
+        @keyframes moShimmer { from { transform: translateX(-100%); } to { transform: translateX(100%); } }
+        @keyframes moRise { from { opacity: 0; transform: translateY(22px); } to { opacity: 1; transform: none; } }
+        @keyframes moPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.06); } }
+
+        .mo-toast-wrap { position: fixed; top: 20px; right: 20px; z-index: 2000; display: flex; flex-direction: column; gap: 10px; }
+        .mo-toast {
+            display: flex; align-items: center; gap: 10px;
+            padding: 14px 18px;
+            border-radius: 12px;
+            font-size: 0.88rem; font-weight: 600;
+            box-shadow: 0 14px 34px rgba(0,0,0,0.5);
+            transform: translateX(120%);
+            transition: transform 0.4s cubic-bezier(0.2, 0.7, 0.2, 1);
+            max-width: 360px;
+        }
+        .mo-toast.show { transform: translateX(0); }
+        .mo-toast.success { background: #052e16; color: #bbf7d0; border: 1px solid rgba(34, 197, 94, 0.4); }
+        .mo-toast.error { background: #2a0505; color: #fecaca; border: 1px solid rgba(239, 68, 68, 0.4); }
+        .mo-toast.info { background: #1e1b2a; color: #ddd6fe; border: 1px solid rgba(139, 92, 246, 0.4); }
+
+        @media (max-width: 768px) {
+            .mo-stats { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 480px) {
+            .mo-stats { grid-template-columns: 1fr; }
+            .mo-card-head { padding: 14px 16px; }
+            .mo-card-body { padding: 14px 16px; }
+            .mo-actions { width: 100%; }
+            .mo-btn { flex: 1; justify-content: center; }
+        }
+    </style>
+</head>
+<body class="mo-page">
+    <nav class="navbar navbar-expand-lg shop-navbar">
+        <div class="container-fluid p-0">
+            <a class="navbar-brand" href="/"><img src="/images/logo.jpeg" alt="AM SRI Petshop" class="shop-logo"></a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMo"><i class="bi bi-list fs-3 text-light"></i></button>
+            <div class="collapse navbar-collapse justify-content-end" id="navMo">
+                <ul class="navbar-nav align-items-center">
+                    <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/products.html">Shop</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/about.html">About</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/contact.html">Contact</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="/my-orders.html"><i class="bi bi-receipt"></i> My Orders</a></li>
+                    <li class="nav-item" data-auth-nav></li>
+                    <li class="nav-item"><a class="nav-link" href="/cart.html"><i class="bi bi-bag"></i> <span id="cartCount" class="nav-count">0</span></a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="mo-shell">
+        <div class="mo-header">
+            <div>
+                <span class="mo-eyebrow"><i class="bi bi-clock-history"></i> Order History</span>
+                <h1 class="mo-title">My Orders</h1>
+                <p class="mo-subtitle">Track, manage and revisit every order you've placed with AM SRI Petshop.</p>
+            </div>
+            <div class="mo-user-chip" id="userChip" style="display:none;">
+                <i class="bi bi-person-circle"></i>
+                <span>Welcome, <strong id="userName">Customer</strong></span>
+            </div>
+        </div>
+
+        <div class="mo-stats" id="statsRow" style="display:none;">
+            <div class="mo-stat">
+                <div class="mo-stat-icon red"><i class="bi bi-bag-check"></i></div>
+                <div class="mo-stat-value" id="statTotal">0</div>
+                <div class="mo-stat-label">Total Orders</div>
+            </div>
+            <div class="mo-stat">
+                <div class="mo-stat-icon green"><i class="bi bi-currency-rupee"></i></div>
+                <div class="mo-stat-value" id="statSpent">₹0</div>
+                <div class="mo-stat-label">Total Spent</div>
+            </div>
+            <div class="mo-stat">
+                <div class="mo-stat-icon amber"><i class="bi bi-truck"></i></div>
+                <div class="mo-stat-value" id="statActive">0</div>
+                <div class="mo-stat-label">In Progress</div>
+            </div>
+            <div class="mo-stat">
+                <div class="mo-stat-icon blue"><i class="bi bi-box-seam"></i></div>
+                <div class="mo-stat-value" id="statDelivered">0</div>
+                <div class="mo-stat-label">Delivered</div>
+            </div>
+        </div>
+
+        <div class="mo-tabs" id="tabsRow" style="display:none;">
+            <button class="mo-tab active" data-filter="all">All Orders</button>
+            <button class="mo-tab" data-filter="processing">Processing</button>
+            <button class="mo-tab" data-filter="shipped">Shipped</button>
+            <button class="mo-tab" data-filter="delivered">Delivered</button>
+            <button class="mo-tab" data-filter="cancelled">Cancelled</button>
+        </div>
+
+        <div id="loadingState">
+            <div class="mo-skeleton"></div>
+            <div class="mo-skeleton" style="margin-top:16px;"></div>
+            <div class="mo-skeleton" style="margin-top:16px;"></div>
+        </div>
+
+        <div class="mo-list" id="ordersList" style="display:none;"></div>
+
+        <div id="emptyState" style="display:none;">
+            <div class="mo-empty">
+                <div class="mo-empty-icon"><i class="bi bi-receipt-cutoff"></i></div>
+                <h3>No orders yet</h3>
+                <p>You haven't placed any orders with us. Explore our collection of premium pet care products and place your first order today!</p>
+                <a href="/products.html" class="mo-btn mo-btn-primary"><i class="bi bi-bag-heart"></i> Start Shopping</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="mo-toast-wrap" id="toastWrap"></div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/auth.js"></script>
+    <script>
+        const PAYMENT_LABELS = { cod: "Cash on Delivery", upi: "UPI", card: "Card" };
+
+        function escapeHtml(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"); }
+        function fmt(n) { return "₹" + Math.round(Number(n) || 0).toLocaleString("en-IN"); }
+        function toast(msg, type) {
+            type = type || "info";
+            const wrap = document.getElementById("toastWrap");
+            const icons = { success: "bi-check-circle-fill", error: "bi-x-circle-fill", info: "bi-info-circle-fill" };
+            const el = document.createElement("div");
+            el.className = "mo-toast " + type;
+            el.innerHTML = '<i class="bi ' + icons[type] + '"></i><span>' + escapeHtml(msg) + '</span>';
+            wrap.appendChild(el);
+            requestAnimationFrame(() => el.classList.add("show"));
+            setTimeout(() => { el.classList.remove("show"); setTimeout(() => el.remove(), 400); }, 3200);
+        }
+
+        function requireLogin() {
+            const u = JSON.parse(localStorage.getItem("petshop_currentUser") || "null");
+            if (!u) {
+                window.location.href = "/login.html?redirect=myorders";
+                return null;
+            }
+            return u;
+        }
+
+        function updateCartCount() {
+            let c = [];
+            try { c = JSON.parse(localStorage.getItem("amSriCart")) || []; } catch (e) { c = []; }
+            const el = document.getElementById("cartCount");
+            if (el) el.textContent = c.reduce((s, i) => s + (i.quantity || 1), 0);
+        }
+
+        function statusBadge(status) {
+            const s = String(status || "processing").toLowerCase();
+            const icons = { processing: "bi-arrow-repeat", shipped: "bi-truck", delivered: "bi-check-circle", cancelled: "bi-x-circle", pending: "bi-clock" };
+            const icon = icons[s] || "bi-arrow-repeat";
+            return '<span class="mo-badge ' + s + '"><i class="bi ' + icon + '"></i> ' + s.charAt(0).toUpperCase() + s.slice(1) + '</span>';
+        }
+
+        function formatDate(iso) {
+            if (!iso) return "-";
+            const d = new Date(iso);
+            return d.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+        }
+        function orderCard(o) {
+            const itemsHtml = (o.items || []).map(function (it) {
+                return '<div class="mo-item">' +
+                    '<img src="' + escapeHtml(it.image || "/images/logo.jpeg") + '" alt="' + escapeHtml(it.name || "item") + '" onerror="this.src=\'/images/logo.jpeg\'">' +
+                    '<div class="mo-item-info">' +
+                        '<div class="mo-item-name">' + escapeHtml(it.name || "Product") + '</div>' +
+                        '<div class="mo-item-qty">Qty: ' + (it.quantity || 1) + '</div>' +
+                    '</div>' +
+                    '<div class="mo-item-price">' + fmt((it.price || 0) * (it.quantity || 1)) + '</div>' +
+                '</div>';
+            }).join("");
+
+            const itemCount = (o.items || []).reduce((s, i) => s + (i.quantity || 1), 0);
+            const payLabel = PAYMENT_LABELS[o.paymentMethod] || (o.paymentMethod || "cod");
+
+            return '<div class="mo-card" data-status="' + escapeHtml(String(o.status || "processing").toLowerCase()) + '">' +
+                '<div class="mo-card-head">' +
+                    '<div class="mo-card-head-left">' +
+                        '<span class="mo-order-id"><i class="bi bi-receipt"></i>#' + escapeHtml(o.orderId || "-") + '</span>' +
+                        '<span class="mo-date"><i class="bi bi-calendar3"></i> ' + formatDate(o.createdAt) + '</span>' +
+                        '<span class="mo-pay"><i class="bi bi-wallet2"></i> ' + escapeHtml(payLabel) + '</span>' +
+                    '</div>' +
+                    statusBadge(o.status) +
+                '</div>' +
+                '<div class="mo-card-body">' +
+                    '<div class="mo-items">' + itemsHtml + '</div>' +
+                    '<div class="mo-card-foot">' +
+                        '<div class="mo-total-wrap">' +
+                            '<span class="mo-total-label">' + itemCount + ' item' + (itemCount !== 1 ? 's' : '') + ' &middot; Total</span>' +
+                            '<span class="mo-total">' + fmt(o.total) + '</span>' +
+                        '</div>' +
+                        '<div class="mo-actions">' +
+                            '<a href="/order-confirmation.html?orderId=' + encodeURIComponent(o.orderId) + '" class="mo-btn mo-btn-primary"><i class="bi bi-eye"></i> View Details</a>' +
+                            '<a href="/order-confirmation.html?orderId=' + encodeURIComponent(o.orderId) + '&track=1" class="mo-btn mo-btn-ghost"><i class="bi bi-truck"></i> Track</a>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>' +
+            '</div>';
+        }
+
+        function renderStats(orders) {
+            const total = orders.length;
+            const spent = orders.filter(o => o.status !== "cancelled").reduce((s, o) => s + (o.total || 0), 0);
+            const active = orders.filter(o => ["processing", "shipped", "pending"].includes(o.status)).length;
+            const delivered = orders.filter(o => o.status === "delivered").length;
+            document.getElementById("statTotal").textContent = total;
+            document.getElementById("statSpent").textContent = fmt(spent);
+            document.getElementById("statActive").textContent = active;
+            document.getElementById("statDelivered").textContent = delivered;
+            document.getElementById("statsRow").style.display = "grid";
+        }
+
+        let allOrders = [];
+
+        function renderOrders(filter) {
+            const list = document.getElementById("ordersList");
+            const empty = document.getElementById("emptyState");
+            const tabs = document.getElementById("tabsRow");
+
+            if (!allOrders.length) {
+                list.style.display = "none";
+                tabs.style.display = "none";
+                empty.style.display = "block";
+                return;
+            }
+            tabs.style.display = "flex";
+            empty.style.display = "none";
+
+            const filtered = filter === "all" ? allOrders : allOrders.filter(o => String(o.status).toLowerCase() === filter);
+            if (!filtered.length) {
+                list.innerHTML = '<div class="mo-empty" style="padding:40px 20px;"><div class="mo-empty-icon" style="width:70px;height:70px;font-size:2rem;"><i class="bi bi-funnel"></i></div><h3 style="font-size:1.2rem;">No ' + escapeHtml(filter) + ' orders</h3><p>There are no orders matching this filter.</p></div>';
+                list.style.display = "flex";
+                return;
+            }
+            list.innerHTML = filtered.map(orderCard).join("");
+            list.style.display = "flex";
+        }
+        async function init() {
+            const user = requireLogin();
+            if (!user) return;
+            updateCartCount();
+
+            const chip = document.getElementById("userChip");
+            const nameEl = document.getElementById("userName");
+            if (user.firstName || user.lastName) {
+                nameEl.textContent = (user.firstName + " " + (user.lastName || "")).trim();
+            } else if (user.name) {
+                nameEl.textContent = user.name;
+            } else {
+                nameEl.textContent = user.email || "Customer";
+            }
+            chip.style.display = "inline-flex";
+
+            const customerId = user.customerId;
+            if (!customerId) {
+                toast("Your account is missing a customer ID. Please log out and log in again.", "error");
+                document.getElementById("loadingState").style.display = "none";
+                document.getElementById("emptyState").style.display = "block";
+                return;
+            }
+
+            try {
+                const res = await fetch("/api/my-orders?customerId=" + encodeURIComponent(customerId));
+                const data = await res.json();
+                document.getElementById("loadingState").style.display = "none";
+                if (!res.ok || !data.success) {
+                    toast(data.message || "Could not load your orders", "error");
+                    document.getElementById("emptyState").style.display = "block";
+                    return;
+                }
+                allOrders = Array.isArray(data.orders) ? data.orders : [];
+                renderStats(allOrders);
+                renderOrders("all");
+
+                document.querySelectorAll(".mo-tab").forEach(function (tab) {
+                    tab.addEventListener("click", function () {
+                        document.querySelectorAll(".mo-tab").forEach(t => t.classList.remove("active"));
+                        tab.classList.add("active");
+                        renderOrders(tab.getAttribute("data-filter"));
+                    });
+                });
+            } catch (e) {
+                document.getElementById("loadingState").style.display = "none";
+                toast("Network error. Please try again.", "error");
+                document.getElementById("emptyState").style.display = "block";
+            }
+        }
+
+        init();
+    </script>
+</body>
+</html>
