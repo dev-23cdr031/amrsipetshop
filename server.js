@@ -190,6 +190,20 @@ app.post("/api/products", async (req, res) => {
 
 app.put("/api/products/:id", async (req, res) => {
     const id = Number(req.params.id);
+
+    // Always refresh from Supabase first to get the latest products
+    try {
+        const supabaseProducts = await supabase.fetchProducts();
+        if (supabaseProducts && supabaseProducts.length > 0) {
+            products = supabaseProducts;
+        } else {
+            products = mergeProducts();
+        }
+    } catch (e) {
+        console.error("Supabase fetch failed before update, using local products:", e.message);
+        products = mergeProducts();
+    }
+
     const existing = findProduct(id);
     if (!existing) return res.status(404).json({ success: false, message: "Product not found" });
     
@@ -207,7 +221,12 @@ app.put("/api/products/:id", async (req, res) => {
         // Update in Supabase
         await supabase.updateProduct(id, patch);
         // Refresh local products array
-        products = await supabase.fetchProducts();
+        const refreshed = await supabase.fetchProducts();
+        if (refreshed && refreshed.length > 0) {
+            products = refreshed;
+        } else {
+            products = mergeProducts();
+        }
         const updatedProduct = findProduct(id);
         // Broadcast to admin dashboards
         broadcast("product:updated", { product: updatedProduct }, function (c) { return c.channel === "admin"; });
@@ -220,14 +239,39 @@ app.put("/api/products/:id", async (req, res) => {
 
 app.delete("/api/products/:id", async (req, res) => {
     const id = Number(req.params.id);
+
+    try {
+        // Always refresh from Supabase first to get the latest products
+        const supabaseProducts = await supabase.fetchProducts();
+        if (supabaseProducts && supabaseProducts.length > 0) {
+            products = supabaseProducts;
+        } else {
+            products = mergeProducts();
+        }
+    } catch (e) {
+        console.error("Supabase fetch failed before delete, using local products:", e.message);
+        products = mergeProducts();
+    }
+
     const existing = findProduct(id);
-    if (!existing) return res.status(404).json({ success: false, message: "Product not found" });
 
     try {
         // Delete from Supabase (permanently removes the product)
         await supabase.deleteProduct(id);
-        // Refresh local products array
-        products = await supabase.fetchProducts();
+
+        // Refresh local products array after deletion
+        try {
+            const refreshed = await supabase.fetchProducts();
+            if (refreshed && refreshed.length > 0) {
+                products = refreshed;
+            } else {
+                products = mergeProducts();
+            }
+        } catch (e) {
+            console.error("Failed to refresh products after delete:", e.message);
+            products = mergeProducts();
+        }
+
         // Broadcast to admin dashboards
         broadcast("product:deleted", { productId: id }, function (c) { return c.channel === "admin"; });
         res.json({ success: true, message: "Product deleted successfully" });
