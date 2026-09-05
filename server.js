@@ -476,14 +476,30 @@ app.post("/api/orders", async (req, res) => {
 app.get("/api/orders", async (req, res) => {
     try {
         // Always fetch fresh orders from Supabase for admin dashboard
-        orders = await supabase.fetchOrders();
+        const supabaseOrders = await supabase.fetchOrders();
+        if (supabaseOrders && supabaseOrders.length > 0) {
+            orders = supabaseOrders;
+        } else {
+            console.log("Supabase orders empty, using local orders");
+            orders = store.loadOrders();
+        }
     } catch (e) {
         console.error("Supabase fetch failed in /api/orders, using local orders:", e.message);
+        orders = store.loadOrders();
     }
     res.json(orders.slice().reverse());
 });
 
-app.get("/api/orders/:id", (req, res) => {
+app.get("/api/orders/:id", async (req, res) => {
+    // Refresh from Supabase first
+    try {
+        const supabaseOrders = await supabase.fetchOrders();
+        if (supabaseOrders && supabaseOrders.length > 0) {
+            orders = supabaseOrders;
+        }
+    } catch (e) {
+        console.error("Supabase fetch failed in /api/orders/:id, using local orders:", e.message);
+    }
     const order = orders.find((o) => o.orderId === req.params.id);
     if (!order) return res.status(404).json({ success: false, message: "Order not found" });
     res.json(order);
@@ -555,7 +571,19 @@ app.patch("/api/orders/:id/status", async (req, res) => {
 
 // â”€â”€ FULL ORDER EDIT ENDPOINT (admin can edit any order details) â”€â”€
 app.patch("/api/orders/:id", async (req, res) => {
-    const orderIndex = orders.findIndex((o) => o.orderId === req.params.id);
+    const orderId = req.params.id;
+
+    // Refresh from Supabase first
+    try {
+        const supabaseOrders = await supabase.fetchOrders();
+        if (supabaseOrders && supabaseOrders.length > 0) {
+            orders = supabaseOrders;
+        }
+    } catch (e) {
+        console.error("Supabase fetch failed before order edit, using local orders:", e.message);
+    }
+
+    const orderIndex = orders.findIndex((o) => o.orderId === orderId);
     if (orderIndex === -1) return res.status(404).json({ success: false, message: "Order not found" });
     
     // Merge the incoming updates into the existing order
@@ -577,7 +605,19 @@ app.patch("/api/orders/:id", async (req, res) => {
 });
 
 app.delete("/api/orders/:id", async (req, res) => {
-    const idx = orders.findIndex((o) => o.orderId === req.params.id);
+    const orderId = req.params.id;
+
+    // Refresh from Supabase first
+    try {
+        const supabaseOrders = await supabase.fetchOrders();
+        if (supabaseOrders && supabaseOrders.length > 0) {
+            orders = supabaseOrders;
+        }
+    } catch (e) {
+        console.error("Supabase fetch failed before order delete, using local orders:", e.message);
+    }
+
+    const idx = orders.findIndex((o) => o.orderId === orderId);
     if (idx === -1) return res.status(404).json({ success: false, message: "Order not found" });
     const [removed] = orders.splice(idx, 1);
     await deleteOrderFromSupabase(removed.orderId);

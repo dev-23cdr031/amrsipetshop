@@ -411,6 +411,30 @@
   box-shadow: 24px 24px 0 rgba(201, 43, 43, 0.22);
 }
 
+.founder-caption {
+  padding: 20px 0 0 4px;
+  color: var(--paper);
+  letter-spacing: 0.08em;
+}
+
+.founder-caption strong,
+.founder-caption span {
+  display: block;
+}
+
+.founder-caption strong {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.1rem;
+  letter-spacing: 0.12em;
+}
+
+.founder-caption span {
+  margin-top: 5px;
+  color: var(--amber-light);
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
 .story-copy p {
   color: rgba(245, 241, 232, 0.65);
   line-height: 1.8;
