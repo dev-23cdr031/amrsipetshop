@@ -363,8 +363,9 @@
                 // Redirect based on admin email or return URL
                 const params = new URLSearchParams(window.location.search);
                 const redirect = params.get('redirect');
+                const ADMIN_EMAILS = ['devdharrshans.23csd@kongu.edu', 'nagasakthi779@gmail.com'];
                 setTimeout(() => {
-                    if (email === 'devdharrshans.23csd@kongu.edu') {
+                    if (ADMIN_EMAILS.includes(email)) {
                         window.location.href = '/admin.html';
                     } else if (redirect === 'checkout') {
                         window.location.href = '/checkout.html';

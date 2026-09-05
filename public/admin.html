@@ -238,7 +238,7 @@
         let currentOrderFilter = "all";
         let currentOrderId = null;
         let messages = [];
-        const ADMIN_EMAIL = "devdharrshans.23csd@kongu.edu";
+        const ADMIN_EMAILS = ["devdharrshans.23csd@kongu.edu", "nagasakthi779@gmail.com"];
 
         function fmt(n) { return "Rs" + Math.round(n).toLocaleString("en-IN"); }
         function escapeHtml(s) { return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"); }
@@ -258,7 +258,7 @@
 
         function checkAuth() {
             const u = JSON.parse(localStorage.getItem("petshop_currentUser") || "null");
-            if (!u || u.email !== ADMIN_EMAIL) {
+            if (!u || !ADMIN_EMAILS.includes(u.email)) {
                 window.location.href = "/login.html";
                 return false;
             }
@@ -669,7 +669,7 @@
             if (!list.length) { body.innerHTML = ""; empty.style.display = "block"; return; }
             empty.style.display = "none";
             body.innerHTML = list.map(function (u) {
-                const isAdmin = u.email === ADMIN_EMAIL;
+                const isAdmin = ADMIN_EMAILS.includes(u.email);
                 const role = isAdmin ? '<span class="ad-badge role-admin">Admin</span>' : '<span class="ad-badge role-user">Customer</span>';
                 const joined = u.createdAt ? new Date(u.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : "-";
                 return '<tr><td>' + escapeHtml(u.name || "-") + '</td><td>' + escapeHtml(u.email || "-") + '</td><td>' + role + '</td><td><span class="ad-badge stock-ok">Active</span></td><td style="color:var(--ad-muted);font-size:0.8rem;">' + joined + '</td></tr>';
@@ -704,7 +704,7 @@
         function exportUsers() {
             if (!users.length) { toast("No users to export", "info"); return; }
             const rows = [["Name", "Email", "Role", "Joined"]];
-            users.forEach(function (u) { rows.push([u.name, u.email, u.email === ADMIN_EMAIL ? "Admin" : "Customer", u.createdAt || "-"]); });
+            users.forEach(function (u) { rows.push([u.name, u.email, ADMIN_EMAILS.includes(u.email) ? "Admin" : "Customer", u.createdAt || "-"]); });
             downloadCSV("am-sri-users.csv", rows);
         }
 

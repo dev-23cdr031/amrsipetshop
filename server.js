@@ -850,7 +850,7 @@ app.post("/api/signup", async (req, res) => {
                 email: email,
                 phone: phone,
                 password: password,
-                is_admin: email === "devdharrshans.23csd@kongu.edu"
+                is_admin: ["devdharrshans.23csd@kongu.edu", "nagasakthi779@gmail.com"].includes(email)
             };
             
             const created = await supabase.sb("/customers", {
@@ -882,7 +882,7 @@ app.post("/api/signup", async (req, res) => {
                 email: email,
                 phone: phone,
                 password: password,
-                is_admin: email === "devdharrshans.23csd@kongu.edu",
+                is_admin: ["devdharrshans.23csd@kongu.edu", "nagasakthi779@gmail.com"].includes(email),
                 created_at: new Date().toISOString()
             };
             
