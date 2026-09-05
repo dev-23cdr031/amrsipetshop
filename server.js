@@ -490,7 +490,34 @@ app.get("/api/orders/:id", (req, res) => {
 });
 
 app.patch("/api/orders/:id/status", async (req, res) => {
-    let order = orders.find((o) => o.orderId === req.params.id);
+    const orderId = req.params.id;
+
+    // Always refresh from Supabase first to get the latest orders
+    try {
+        const supabaseOrders = await supabase.fetchOrders();
+        if (supabaseOrders && supabaseOrders.length > 0) {
+            orders = supabaseOrders;
+        }
+    } catch (e) {
+        console.error("Supabase fetch failed before status update, using local orders:", e.message);
+    }
+
+    let order = orders.find((o) => o.orderId === orderId);
+
+    // If still not found locally, try to fetch directly from Supabase
+    if (!order) {
+        try {
+            const supabaseOrder = await supabase.sb("/orders?order_id=eq." + encodeURIComponent(orderId) + "&select=*");
+            if (supabaseOrder && supabaseOrder.length > 0) {
+                order = supabase.snakeToCamelOrder(supabaseOrder[0]);
+                orders.push(order);
+                console.log("Order found directly from Supabase:", orderId);
+            }
+        } catch (e) {
+            console.error("Failed to fetch order from Supabase:", e.message);
+        }
+    }
+
     if (!order) return res.status(404).json({ success: false, message: "Order not found" });
     const status = String(req.body.status || "").toLowerCase();
     if (!VALID_STATUSES.includes(status)) return res.status(400).json({ success: false, message: "Invalid status." });
@@ -517,6 +544,10 @@ app.patch("/api/orders/:id/status", async (req, res) => {
     // Admin dashboards (so the table row + status badge refresh)
     broadcast("order:status", { orderId: order.orderId, status: order.status, trackingNumber: order.trackingNumber, order: order }, function (c) {
         return c.channel === "admin";
+    });
+    // Customer's My Orders page (so the order list refreshes with new status)
+    broadcast("order:status", { orderId: order.orderId, status: order.status, trackingNumber: order.trackingNumber, order: order }, function (c) {
+        return c.channel === "myorders";
     });
 
     res.json({ success: true, order });

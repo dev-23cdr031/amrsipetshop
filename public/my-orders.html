@@ -594,6 +594,33 @@
         }
 
         init();
+
+        // ─ Realtime: Listen for order status updates from admin ──
+        (function () {
+            var evtSource = new EventSource("/api/events?channel=myorders");
+            evtSource.addEventListener("order:status", function (e) {
+                try {
+                    var payload = JSON.parse(e.data);
+                    if (!payload || !payload.orderId) return;
+                    // Find and update the order in the local list
+                    var idx = allOrders.findIndex(function (o) { return o.orderId === payload.orderId; });
+                    if (idx !== -1) {
+                        allOrders[idx].status = payload.status;
+                        if (payload.trackingNumber) allOrders[idx].trackingNumber = payload.trackingNumber;
+                        renderStats(allOrders);
+                        renderOrders(document.querySelector(".mo-tab.active")?.getAttribute("data-filter") || "all");
+                        toast("Order status updated: " + payload.status, "success");
+                    }
+                } catch (err) {
+                    console.error("SSE order:status parse error:", err);
+                }
+            });
+            evtSource.addEventListener("heartbeat", function () { /* keep-alive */ });
+            evtSource.onerror = function () {
+                console.log("My Orders SSE disconnected, reconnecting...");
+                setTimeout(function () { evtSource.close(); evtSource = new EventSource("/api/events?channel=myorders"); }, 5000);
+            };
+        })();
     </script>
 </body>
 </html>
