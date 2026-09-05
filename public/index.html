@@ -545,6 +545,88 @@
             }
         }
 
+
+        /* Fix hero section for mobile - show full image without cutoff */
+        @media (max-width: 768px) {
+            /* Reduce image height on mobile */
+            .hero-float img {
+                height: 350px !important;
+            }
+            
+            /* Adjust floating badges position */
+            .hero-float > div.absolute {
+                position: relative !important;
+                top: auto !important;
+                left: auto !important;
+                right: auto !important;
+                bottom: auto !important;
+                margin: 10px auto !important;
+                display: inline-block !important;
+            }
+            
+            /* Make badges inline on mobile */
+            .hero-float {
+                flex-direction: column !important;
+                gap: 12px !important;
+            }
+            
+            /* Adjust glass panels for mobile */
+            .glass-panel.px-6.py-4 {
+                padding: 12px 20px !important;
+            }
+            
+            .glass-panel .mono.text-2xl {
+                font-size: 1.25rem !important;
+            }
+        }
+
+        @media (max-width: 576px) {
+            /* Further reduce image height on small mobile */
+            .hero-float img {
+                height: 280px !important;
+            }
+            
+            /* Stack badges vertically on small screens */
+            .hero-float > div {
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: center !important;
+                gap: 8px !important;
+            }
+            
+            /* Reduce badge size */
+            .glass-panel.px-6.py-4 {
+                padding: 10px 16px !important;
+            }
+            
+            .glass-panel .mono.text-2xl {
+                font-size: 1.1rem !important;
+            }
+            
+            .glass-panel .text-gray-400.text-sm {
+                font-size: 0.75rem !important;
+            }
+        }
+
+        @media (max-width: 480px) {
+            /* Even smaller image for very small screens */
+            .hero-float img {
+                height: 240px !important;
+            }
+            
+            /* Make badges smaller and inline */
+            .hero-float > div {
+                flex-direction: row !important;
+                justify-content: center !important;
+                flex-wrap: wrap !important;
+            }
+            
+            .glass-panel.px-6.py-4 {
+                padding: 8px 12px !important;
+                margin: 5px !important;
+            }
+        }
+
         }
 
     </style>
