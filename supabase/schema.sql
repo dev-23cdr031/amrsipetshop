@@ -108,10 +108,10 @@ create table public.promo_codes (
 
 -- Seed the four codes currently defined in data/promo-codes.js
 insert into public.promo_codes (code, type, value, min_subtotal, max_discount, description, active) values
-    ('PETLOVE10',  'percent',  10,  0,    500,  '10% off your order (max ₹500)',                   true),
-    ('WELCOME150', 'flat',     150, 999,  150,  '₹150 off orders above ₹999',                      true),
-    ('AQUA20',     'percent',  20,  2000, 1000, '20% off aquarium orders above ₹2000 (max ₹1000)', true),
-    ('FREESHIP',   'flat',     49,  500,  49,   'Free shipping on orders above ₹500',              true);
+    ('PETLOVE10',  'percent',  10,  0,    500,  '10% off your order (max â‚¹500)',                   true),
+    ('WELCOME150', 'flat',     150, 999,  150,  'â‚¹150 off orders above â‚¹999',                      true),
+    ('AQUA20',     'percent',  20,  2000, 1000, '20% off aquarium orders above â‚¹2000 (max â‚¹1000)', true),
+    ('FREESHIP',   'flat',     49,  500,  49,   'Free shipping on orders above â‚¹500',              true);
 
 -- â”€â”€ ROW LEVEL SECURITY â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 -- The Express server will use the SECRET key, which bypasses RLS entirely.
