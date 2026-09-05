@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -419,7 +419,7 @@
             font-family: 'JetBrains Mono', monospace;
         }
 
-        /* Mobile Navbar — Clean, No Conflicts */
+        /* Mobile Navbar â€” Clean, No Conflicts */
         @media (max-width: 991px) {
             header > div {
                 padding-left: 1rem !important;
@@ -468,29 +468,31 @@
 
         @media (max-width: 576px) {
             header > div {
-                padding-left: 0.6rem !important;
-                padding-right: 0.6rem !important;
+                padding-left: 0.5rem !important;
+                padding-right: 0.5rem !important;
                 height: 56px !important;
             }
             header img {
-                width: 30px !important;
-                height: 30px !important;
+                width: 28px !important;
+                height: 28px !important;
             }
             header > div > div:last-child {
-                gap: 0.45rem !important;
+                gap: 0.3rem !important;
             }
             #cartCount, #wishlistCount {
-                width: 15px !important;
-                height: 15px !important;
+                width: 14px !important;
+                height: 14px !important;
                 font-size: 7px !important;
-                top: -6px !important;
-                right: -6px !important;
+                top: -5px !important;
+                right: -5px !important;
             }
             .bi-bag, .bi-heart {
-                font-size: 1.2rem !important;
+                font-size: 1.1rem !important;
             }
             #menu-btn {
-                font-size: 1.4rem !important;
+                margin-left: 0 !important;
+                font-size: 1.25rem !important;
+                padding: 0 !important;
             }
         }
 
@@ -591,6 +593,98 @@
             }
         }
 
+        /* ============================================
+           MOBILE FIXES - sections after testimonials
+           Prevent overlap on all screen sizes
+           ============================================ */
+
+        /* Stats section - reduce padding and font size on mobile */
+        @media (max-width: 768px) {
+            section .glass-panel.rounded-\[3rem\] {
+                padding: 2rem 1rem !important;
+                border-radius: 2rem !important;
+            }
+            section .grid.grid-cols-2.md\:grid-cols-4 {
+                gap: 1.5rem !important;
+            }
+            section .mono.text-5xl {
+                font-size: 2.2rem !important;
+            }
+        }
+
+        /* About section - fix grid overlap */
+        @media (max-width: 991px) {
+            section#about > div.grid {
+                padding: 2rem 1.25rem !important;
+                gap: 2rem !important;
+            }
+        }
+        @media (max-width: 576px) {
+            section#about > div.grid {
+                padding: 1.5rem 1rem !important;
+                gap: 1.5rem !important;
+            }
+            section#about .h-96 {
+                height: 200px !important;
+            }
+            section#about h2.font-serif.text-4xl {
+                font-size: 1.6rem !important;
+            }
+        }
+
+        /* Services section - reduce card padding */
+        @media (max-width: 991px) {
+            section .grid.md\:grid-cols-3.gap-8 > div {
+                padding: 1.5rem !important;
+            }
+        }
+        @media (max-width: 576px) {
+            section h2.font-serif.text-4xl {
+                font-size: 1.6rem !important;
+            }
+        }
+
+        /* Special Offers - fix card padding */
+        @media (max-width: 768px) {
+            section .grid.md\:grid-cols-2.gap-8 > div {
+                padding: 1.5rem !important;
+            }
+            section .grid.md\:grid-cols-2.gap-8 .w-40.h-40 {
+                width: 100px !important;
+                height: 100px !important;
+            }
+        }
+        @media (max-width: 576px) {
+            section .grid.md\:grid-cols-2.gap-8 > div {
+                padding: 1.25rem !important;
+            }
+        }
+
+        /* Newsletter section - fix padding */
+        @media (max-width: 576px) {
+            section .p-8.md\:p-12 {
+                padding: 1.5rem 1rem !important;
+            }
+            section h2.font-serif.text-3xl {
+                font-size: 1.4rem !important;
+            }
+        }
+
+        /* Footer - fix grid on mobile */
+        @media (max-width: 991px) {
+            footer > div.grid {
+                grid-template-columns: repeat(2, 1fr) !important;
+                gap: 2rem !important;
+            }
+        }
+        @media (max-width: 576px) {
+            footer > div.grid {
+                grid-template-columns: 1fr !important;
+                gap: 2rem !important;
+                padding: 2rem 1rem !important;
+            }
+        }
+
     </style>
 </head>
 <body class="scanlines">
@@ -678,12 +772,12 @@
           <span style="font-size: 18px; font-weight: 700; color: #ffffff;">Your Cart</span>
           <span style="background-color: rgba(225, 29, 72, 0.15); color: #f43f5e; font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 12px;"><span id="cartItemCount">0</span></span>
         </div>
-        <button onclick="closeCart()" style="background: none; border: none; color: #a3a3a3; font-size: 22px; cursor: pointer; padding: 4px 8px;">✕</button>
+        <button onclick="closeCart()" style="background: none; border: none; color: #a3a3a3; font-size: 22px; cursor: pointer; padding: 4px 8px;">âœ•</button>
       </div>
       <!-- Cart Items Container - Vertical Scroll -->
       <div style="flex: 1; overflowY: auto; padding: 20px;">
         <div id="cartEmpty" style="text-align: center; padding: 40px 0; color: #737373;">
-          <div style="font-size: 48px; margin-bottom: 16px;">🛒</div>
+          <div style="font-size: 48px; margin-bottom: 16px;">ðŸ›’</div>
           <p>Your cart is empty</p>
           <p style="font-size: 14px; margin-top: 8px; opacity: 0.8;">Discover amazing products for your pets!</p>
         </div>
@@ -693,7 +787,7 @@
       <div style="padding: 20px; border-top: 1px solid #262626; background-color: #0a0a0a; display: flex; flex-direction: column; gap: 12px;">
         <div style="display: flex; justify-content: space-between; font-size: 14px; color: #a3a3a3;">
           <span>Subtotal</span>
-          <span style="color: #ffffff; font-weight: 600;"><span id="cartSubtotal">₹0</span></span>
+          <span style="color: #ffffff; font-weight: 600;"><span id="cartSubtotal">â‚¹0</span></span>
         </div>
         <div style="display: flex; justify-content: space-between; font-size: 12px; color: #737373;">
           <span>Shipping</span>
@@ -701,9 +795,9 @@
         </div>
         <div style="display: flex; justify-content: space-between; font-size: 16px; font-weight: 700; color: #ffffff; padding-top: 8px; border-top: 1px solid #262626;">
           <span>Total</span>
-          <span style="color: #f43f5e;"><strong id="cartTotal">₹0</strong></span>
+          <span style="color: #f43f5e;"><strong id="cartTotal">â‚¹0</strong></span>
         </div>
-        <button onclick="proceedToCheckout()" style="width: 100%; background-color: #e11d48; color: #ffffff; font-weight: 700; font-size: 14px; padding: 14px; border-radius: 10px; border: none; cursor: pointer; margin-top: 8px;">Proceed to Checkout →</button>
+        <button onclick="proceedToCheckout()" style="width: 100%; background-color: #e11d48; color: #ffffff; font-weight: 700; font-size: 14px; padding: 14px; border-radius: 10px; border: none; cursor: pointer; margin-top: 8px;">Proceed to Checkout â†’</button>
         <button onclick="closeCart()" style="width: 100%; background-color: #171717; color: #a3a3a3; font-weight: 600; font-size: 12px; padding: 10px; border-radius: 10px; border: 1px solid #262626; cursor: pointer;">Continue Shopping</button>
       </div>
     </div>
@@ -715,7 +809,7 @@
           <!-- Header -->
           <div style="padding: 20px; border-bottom: 1px solid #262626; display: flex; align-items: center; justify-content: space-between; background-color: #121212;">
             <h3 id="checkoutHeader" style="margin: 0; font-size: 18px; font-weight: 700;">Shipping & Order Details</h3>
-            <button onclick="handleCloseAndReset()" style="background: none; border: none; color: #a3a3a3; font-size: 20px; cursor: pointer; padding: 4px 8px;">✕</button>
+            <button onclick="handleCloseAndReset()" style="background: none; border: none; color: #a3a3a3; font-size: 20px; cursor: pointer; padding: 4px 8px;">âœ•</button>
           </div>
 
           <!-- Dynamic Content (Form or Success) -->
@@ -924,8 +1018,8 @@
                     <p class="text-gray-400 mb-4">High-quality fish food that provides essential nutrients for all types of aquarium fish</p>
                     <div class="flex items-center justify-between">
                         <div>
-                            <span class="text-3xl font-bold text-red-400">₹10</span>
-                            <span class="text-gray-600 line-through ml-2">₹20</span>
+                            <span class="text-3xl font-bold text-red-400">â‚¹10</span>
+                            <span class="text-gray-600 line-through ml-2">â‚¹20</span>
                         </div>
                         <button class="w-14 h-14 red-gradient rounded-full flex items-center justify-center group-hover:scale-110 transition-transform duration-300 pulse-glow" onclick="window.location.href='products.html'">
                             <i class="bi bi-cart-plus text-white text-xl"></i>
@@ -953,8 +1047,8 @@
                     <p class="text-gray-400 mb-4">Trusted brand fish food that supports healthy growth and vibrant colors in your aquarium fish</p>
                     <div class="flex items-center justify-between">
                         <div>
-                            <span class="text-3xl font-bold text-red-400">₹30</span>
-                            <span class="text-gray-600 line-through ml-2">₹50</span>
+                            <span class="text-3xl font-bold text-red-400">â‚¹30</span>
+                            <span class="text-gray-600 line-through ml-2">â‚¹50</span>
                         </div>
                         <button class="w-14 h-14 red-gradient rounded-full flex items-center justify-center group-hover:scale-110 transition-transform duration-300 pulse-glow" onclick="window.location.href='products.html'">
                             <i class="bi bi-cart-plus text-white text-xl"></i>
@@ -982,8 +1076,8 @@
                     <p class="text-gray-400 mb-4">Specialized food formulated specifically for breeding betta fish to support healthy reproduction</p>
                     <div class="flex items-center justify-between">
                         <div>
-                            <span class="text-3xl font-bold text-red-400">₹70</span>
-                            <span class="text-gray-600 line-through ml-2">₹90</span>
+                            <span class="text-3xl font-bold text-red-400">â‚¹70</span>
+                            <span class="text-gray-600 line-through ml-2">â‚¹90</span>
                         </div>
                         <button class="w-14 h-14 red-gradient rounded-full flex items-center justify-center group-hover:scale-110 transition-transform duration-300 pulse-glow" onclick="window.location.href='products.html'">
                             <i class="bi bi-cart-plus text-white text-xl"></i>
@@ -1011,8 +1105,8 @@
                     <p class="text-gray-400 mb-4">Premium quality fish food that enhances color and promotes healthy growth in all freshwater fish</p>
                     <div class="flex items-center justify-between">
                         <div>
-                            <span class="text-3xl font-bold text-red-400">₹70</span>
-                            <span class="text-gray-600 line-through ml-2">₹90</span>
+                            <span class="text-3xl font-bold text-red-400">â‚¹70</span>
+                            <span class="text-gray-600 line-through ml-2">â‚¹90</span>
                         </div>
                         <button class="w-14 h-14 red-gradient rounded-full flex items-center justify-center group-hover:scale-110 transition-transform duration-300 pulse-glow" onclick="window.location.href='products.html'">
                             <i class="bi bi-cart-plus text-white text-xl"></i>
@@ -1040,8 +1134,8 @@
                     <p class="text-gray-400 mb-4">Specially formulated food to enhance the natural glow and vibrant colors of your glowfish</p>
                     <div class="flex items-center justify-between">
                         <div>
-                            <span class="text-3xl font-bold text-red-400">₹70</span>
-                            <span class="text-gray-600 line-through ml-2">₹90</span>
+                            <span class="text-3xl font-bold text-red-400">â‚¹70</span>
+                            <span class="text-gray-600 line-through ml-2">â‚¹90</span>
                         </div>
                         <button class="w-14 h-14 red-gradient rounded-full flex items-center justify-center group-hover:scale-110 transition-transform duration-300 pulse-glow" onclick="window.location.href='products.html'">
                             <i class="bi bi-cart-plus text-white text-xl"></i>
@@ -1069,8 +1163,8 @@
                     <p class="text-gray-400 mb-4">Highly nutritious fish food that's a favorite among aquarium enthusiasts for all tropical fish species</p>
                     <div class="flex items-center justify-between">
                         <div>
-                            <span class="text-3xl font-bold text-red-400">₹100</span>
-                            <span class="text-gray-600 line-through ml-2">₹130</span>
+                            <span class="text-3xl font-bold text-red-400">â‚¹100</span>
+                            <span class="text-gray-600 line-through ml-2">â‚¹130</span>
                         </div>
                         <button class="w-14 h-14 red-gradient rounded-full flex items-center justify-center group-hover:scale-110 transition-transform duration-300 pulse-glow" onclick="window.location.href='products.html'">
                             <i class="bi bi-cart-plus text-white text-xl"></i>
@@ -1120,7 +1214,7 @@
                     <i class="bi bi-truck text-white text-4xl"></i>
                 </div>
                 <h3 class="text-2xl font-bold text-white mb-4">Same Day Virudhunagar Delivery</h3>
-                <p class="text-gray-400">Order before 2PM and get same-day doorstep delivery across Virudhunagar, free delivery on orders above ₹999</p>
+                <p class="text-gray-400">Order before 2PM and get same-day doorstep delivery across Virudhunagar, free delivery on orders above â‚¹999</p>
             </div>
 
             <!-- Benefit 4: Easy Returns -->
@@ -1355,8 +1449,8 @@
                         <h3 class="text-3xl font-bold text-white mb-3">Mega Dog Food Pack</h3>
                         <p class="text-gray-400 mb-4">20kg premium dog food at never-before prices - perfect for large breed owners</p>
                         <div class="flex items-center justify-center md:justify-start gap-4">
-                            <span class="text-3xl font-bold text-red-400">₹3,499</span>
-                            <span class="text-xl text-gray-600 line-through">₹4,399</span>
+                            <span class="text-3xl font-bold text-red-400">â‚¹3,499</span>
+                            <span class="text-xl text-gray-600 line-through">â‚¹4,399</span>
                         </div>
                     </div>
                 </div>
@@ -1374,8 +1468,8 @@
                         <h3 class="text-3xl font-bold text-white mb-3">Complete Aquarium Setup</h3>
                         <p class="text-gray-400 mb-4">2ft tank + filter + lights + fish food - everything you need to start your aquarium journey</p>
                         <div class="flex items-center justify-center md:justify-start gap-4">
-                            <span class="text-3xl font-bold text-red-400">₹7,999</span>
-                            <span class="text-xl text-gray-600 line-through">₹9,999</span>
+                            <span class="text-3xl font-bold text-red-400">â‚¹7,999</span>
+                            <span class="text-xl text-gray-600 line-through">â‚¹9,999</span>
                         </div>
                     </div>
                 </div>
@@ -1473,7 +1567,7 @@
             </div>
             
             <div class="mt-16 pt-8 border-t border-red-500/20 text-center">
-                <p class="text-gray-600 text-lg">© 2026 AM SRI Petshop & Aquarium. All Rights Reserved.</p>
+                <p class="text-gray-600 text-lg">Â© 2026 AM SRI Petshop & Aquarium. All Rights Reserved.</p>
             </div>
         </div>
     </footer>
@@ -1662,3 +1756,5 @@
     </script>
 </body>
 </html>
+
+
