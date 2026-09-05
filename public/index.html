@@ -426,35 +426,28 @@
                 padding-right: 1rem !important;
                 height: 64px !important;
             }
-            header nav { display: none; }
-            #menu-btn { display: block !important; }
+            header nav { display: none !important; }
+            #menu-btn { display: flex !important; }
             /* Hide brand text on mobile, keep only logo */
-            header .flex.items-center.gap-3 > a > div {
-                display: none;
-            }
-            /* Hide auth nav injected elements on mobile */
+            .brand-text-nav { display: none !important; }
+            /* Hide auth nav on mobile */
             header [data-auth-nav] { display: none !important; }
             /* Logo size */
             header img {
-                width: 36px !important;
-                height: 36px !important;
+                width: 34px !important;
+                height: 34px !important;
             }
-            /* Icon sizes */
-            header .bi-bag,
-            header .bi-heart {
-                font-size: 1.4rem !important;
+            /* Right actions gap */
+            header > div > div:last-child {
+                gap: 0.6rem !important;
             }
             /* Cart & wishlist badge positions */
             #cartCount, #wishlistCount {
-                width: 18px !important;
-                height: 18px !important;
-                font-size: 9px !important;
-                top: -8px !important;
-                right: -8px !important;
-            }
-            /* Icon container gap */
-            header .flex.items-center.gap-6 {
-                gap: 0.75rem !important;
+                width: 17px !important;
+                height: 17px !important;
+                font-size: 8px !important;
+                top: -7px !important;
+                right: -7px !important;
             }
         }
 
@@ -468,8 +461,8 @@
                 width: 32px !important;
                 height: 32px !important;
             }
-            header .flex.items-center.gap-6 {
-                gap: 0.6rem !important;
+            header > div > div:last-child {
+                gap: 0.5rem !important;
             }
         }
 
@@ -483,22 +476,21 @@
                 width: 30px !important;
                 height: 30px !important;
             }
-            header .bi-bag,
-            header .bi-heart {
-                font-size: 1.3rem !important;
-            }
-            header .flex.items-center.gap-6 {
-                gap: 0.5rem !important;
+            header > div > div:last-child {
+                gap: 0.45rem !important;
             }
             #cartCount, #wishlistCount {
-                width: 16px !important;
-                height: 16px !important;
-                font-size: 8px !important;
-                top: -7px !important;
-                right: -7px !important;
+                width: 15px !important;
+                height: 15px !important;
+                font-size: 7px !important;
+                top: -6px !important;
+                right: -6px !important;
+            }
+            .bi-bag, .bi-heart {
+                font-size: 1.2rem !important;
             }
             #menu-btn {
-                font-size: 1.6rem !important;
+                font-size: 1.4rem !important;
             }
         }
 
@@ -624,44 +616,42 @@
 
     <!-- Navigation -->
     <header class="w-full bg-black/90 backdrop-blur-md border-b border-neutral-800/60 fixed top-0 left-0 right-0 z-50">
-        <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-            <!-- Far Left: Brand Logo & Title -->
-            <div class="flex items-center gap-3">
-                <a href="index.html" class="flex items-center gap-3 cursor-hover">
-                    <img src="/images/logo.jpeg" alt="AM SRI" class="w-10 h-10 rounded-lg object-cover border border-neutral-800" />
-                    <div>
-                        <div class="text-base font-bold text-white tracking-wide leading-none">AM SRI</div>
-                        <div class="text-[10px] text-rose-500 font-semibold tracking-wider uppercase mt-1">Petshop & Aquarium</div>
-                    </div>
-                </a>
-            </div>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 h-16 md:h-20 flex items-center justify-between">
+            <!-- Left: Logo -->
+            <a href="index.html" class="flex items-center gap-2 md:gap-3 cursor-hover shrink-0">
+                <img src="/images/logo.jpeg" alt="AM SRI" class="w-9 h-9 md:w-10 md:h-10 rounded-lg object-cover border border-neutral-800" />
+                <div class="brand-text-nav hidden sm:block">
+                    <div class="text-sm md:text-base font-bold text-white tracking-wide leading-none">AM SRI</div>
+                    <div class="text-[9px] md:text-[10px] text-rose-500 font-semibold tracking-wider uppercase mt-0.5 md:mt-1">Petshop & Aquarium</div>
+                </div>
+            </a>
 
-            <!-- Center: Navigation Links -->
-            <nav class="hidden md:flex items-center gap-8 text-sm font-medium text-neutral-300">
+            <!-- Center: Navigation Links (desktop only) -->
+            <nav class="hidden md:flex items-center gap-6 lg:gap-8 text-sm font-medium text-neutral-300">
                 <a href="index.html" class="hover:text-rose-500 transition-colors">Home</a>
                 <a href="products.html" class="hover:text-rose-500 transition-colors">Shop</a>
                 <a href="about.html" class="hover:text-rose-500 transition-colors">About</a>
                 <a href="contact.html" class="hover:text-rose-500 transition-colors">Contact</a>
             </nav>
 
-            <!-- Far Right: Actions & Cart -->
-            <div class="flex items-center gap-6">
-                <div class="flex items-center gap-4 text-sm font-medium text-neutral-300" data-auth-nav="index"></div>
-                <!-- Cart & Wishlist Icons -->
-                <a href="#" onclick="openCart()" class="relative cursor-hover" title="Open cart">
-                    <i class="bi bi-bag text-2xl text-white"></i>
-                    <span id="cartCount" class="absolute -top-2 -right-2 w-5 h-5 red-gradient rounded-full flex items-center justify-center text-[10px] font-bold">0</span>
+            <!-- Right: Actions -->
+            <div class="flex items-center gap-3 md:gap-4">
+                <div class="hidden sm:flex items-center gap-4 text-sm font-medium text-neutral-300" data-auth-nav="index"></div>
+                <!-- Cart -->
+                <a href="#" onclick="openCart()" class="relative cursor-hover flex items-center justify-center" title="Open cart">
+                    <i class="bi bi-bag text-xl md:text-2xl text-white"></i>
+                    <span id="cartCount" class="absolute -top-2 -right-2 w-[18px] h-[18px] md:w-5 md:h-5 red-gradient rounded-full flex items-center justify-center text-[9px] md:text-[10px] font-bold">0</span>
                 </a>
-                <a href="#" onclick="openWishlist()" class="relative cursor-hover" title="Open wishlist">
-                    <i class="bi bi-heart text-2xl text-white"></i>
-                    <span id="wishlistCount" class="absolute -top-2 -right-2 w-5 h-5 red-gradient rounded-full flex items-center justify-center text-[10px] font-bold">0</span>
+                <!-- Wishlist -->
+                <a href="#" onclick="openWishlist()" class="relative cursor-hover flex items-center justify-center" title="Open wishlist">
+                    <i class="bi bi-heart text-xl md:text-2xl text-white"></i>
+                    <span id="wishlistCount" class="absolute -top-2 -right-2 w-[18px] h-[18px] md:w-5 md:h-5 red-gradient rounded-full flex items-center justify-center text-[9px] md:text-[10px] font-bold">0</span>
                 </a>
+                <!-- Mobile Menu Button -->
+                <button class="md:hidden flex items-center justify-center text-2xl cursor-hover ml-1" id="menu-btn">
+                    <i class="bi bi-list text-white"></i>
+                </button>
             </div>
-
-            <!-- Mobile Menu Button -->
-            <button class="md:hidden text-3xl cursor-hover" id="menu-btn">
-                <i class="bi bi-list text-white"></i>
-            </button>
         </div>
     </header>
 
