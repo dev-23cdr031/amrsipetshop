@@ -388,6 +388,152 @@
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 18px;
+
+/* Mobile Responsive Fixes for Shop Page */
+@media (max-width: 991px) {
+  .shop-products {
+    padding: 40px 16px 80px;
+  }
+  
+  .product-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+}
+
+@media (max-width: 768px) {
+  .shop-products {
+    padding: 32px 12px 60px;
+  }
+  
+  .shop-products-header {
+    margin-bottom: 28px;
+  }
+  
+  .shop-products-header h2 {
+    font-size: 1.5rem;
+  }
+  
+  .product-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+  
+  .product-card {
+    border-radius: 10px;
+  }
+  
+  .product-image {
+    padding: 16px;
+  }
+  
+  .wishlist-btn {
+    width: 32px;
+    height: 32px;
+    top: 8px;
+    right: 8px;
+  }
+}
+
+@media (max-width: 576px) {
+  .shop-products {
+    padding: 24px 10px 50px;
+  }
+  
+  .shop-products-header h2 {
+    font-size: 1.3rem;
+  }
+  
+  .shop-products-header p {
+    font-size: 0.8rem;
+  }
+  
+  .product-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+  
+  .product-card {
+    border-radius: 8px;
+  }
+  
+  .product-image {
+    padding: 12px;
+    aspect-ratio: 1 / 1;
+  }
+  
+  .product-info {
+    padding: 10px !important;
+  }
+  
+  .product-name, .product-info h3 {
+    font-size: 0.85rem !important;
+    min-height: auto;
+    line-height: 1.3;
+  }
+  
+  .product-price {
+    font-size: 1rem !important;
+  }
+  
+  .product-stock {
+    font-size: 0.7rem;
+  }
+  
+  .card-actions {
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+  
+  .view-button, .add-cart-button {
+    padding: 8px 10px;
+    font-size: 0.75rem;
+  }
+  
+  .quick-view-btn {
+    display: none;
+  }
+  
+  .wishlist-btn {
+    width: 28px;
+    height: 28px;
+    top: 6px;
+    right: 6px;
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .shop-products {
+    padding: 20px 8px 40px;
+  }
+  
+  .product-grid {
+    gap: 8px;
+  }
+  
+  .product-image {
+    padding: 10px;
+  }
+  
+  .product-info {
+    padding: 8px !important;
+  }
+  
+  .product-name, .product-info h3 {
+    font-size: 0.8rem !important;
+  }
+  
+  .product-price {
+    font-size: 0.95rem !important;
+  }
+  
+  .view-button, .add-cart-button {
+    padding: 7px 8px;
+    font-size: 0.7rem;
+  }
+}
+
 }
 
 /* ── Product cards ── */
