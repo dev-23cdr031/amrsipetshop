@@ -479,6 +479,72 @@
             header nav {
                 display: none;
             }
+
+        /* Fix navbar spacing on mobile - target the inner container */
+        @media (max-width: 768px) {
+            header > div {
+                padding-left: 0.75rem !important;
+                padding-right: 0.75rem !important;
+                height: 60px !important;
+            }
+            
+            /* Hide brand text on tablet, show only logo */
+            header .text-base,
+            header .text-[10px] {
+                display: none;
+            }
+            
+            /* Hide Logout button on mobile */
+            header button,
+            header a[href="login.html"] {
+                display: none;
+            }
+        }
+
+        @media (max-width: 576px) {
+            header > div {
+                padding-left: 0.5rem !important;
+                padding-right: 0.5rem !important;
+                height: 56px !important;
+            }
+            
+            header img {
+                width: 32px !important;
+                height: 32px !important;
+            }
+            
+            /* Hide all text elements, keep only logo and icons */
+            header div > div {
+                display: none;
+            }
+            
+            /* Keep the logo image visible */
+            header img {
+                display: block;
+            }
+            
+            /* Adjust icon spacing */
+            header .flex.items-center.gap-4,
+            header .flex.items-center.gap-3 {
+                gap: 0.5rem !important;
+            }
+        }
+
+        /* Hide custom cursor on mobile/touch devices */
+        @media (hover: none) and (pointer: coarse),
+               (max-width: 768px) {
+            .cursor,
+            .cursor-dot {
+                display: none !important;
+            }
+            
+            /* Also hide cursor on loading screen */
+            .loader .cursor,
+            .loader .cursor-dot {
+                display: none !important;
+            }
+        }
+
         }
 
     </style>
