@@ -419,115 +419,86 @@
             font-family: 'JetBrains Mono', monospace;
         }
 
-        /* Mobile Responsive Fixes for Navbar */
-        @media (max-width: 768px) {
-            header {
-                padding: 0.5rem 1rem;
+        /* Mobile Navbar — Clean, No Conflicts */
+        @media (max-width: 991px) {
+            header > div {
+                padding-left: 1rem !important;
+                padding-right: 1rem !important;
+                height: 64px !important;
             }
-            
-            header .max-w-7xl {
-                padding-left: 1rem;
-                padding-right: 1rem;
+            header nav { display: none; }
+            #menu-btn { display: block !important; }
+            /* Hide brand text on mobile, keep only logo */
+            header .flex.items-center.gap-3 > a > div {
+                display: none;
             }
-            
-            header .h-20 {
-                height: 60px;
-            }
-            
+            /* Hide auth nav injected elements on mobile */
+            header [data-auth-nav] { display: none !important; }
+            /* Logo size */
             header img {
-                width: 32px;
-                height: 32px;
+                width: 36px !important;
+                height: 36px !important;
             }
-            
-            header .text-base {
-                font-size: 0.9rem;
+            /* Icon sizes */
+            header .bi-bag,
+            header .bi-heart {
+                font-size: 1.4rem !important;
             }
-            
-            header .text-[10px] {
-                font-size: 8px;
+            /* Cart & wishlist badge positions */
+            #cartCount, #wishlistCount {
+                width: 18px !important;
+                height: 18px !important;
+                font-size: 9px !important;
+                top: -8px !important;
+                right: -8px !important;
+            }
+            /* Icon container gap */
+            header .flex.items-center.gap-6 {
+                gap: 0.75rem !important;
             }
         }
 
-        @media (max-width: 576px) {
-            header {
-                padding: 0.4rem 0.75rem;
-            }
-            
-            header .max-w-7xl {
-                padding-left: 0.75rem;
-                padding-right: 0.75rem;
-            }
-            
-            header .h-20 {
-                height: 56px;
-            }
-            
-            header img {
-                width: 28px;
-                height: 28px;
-            }
-            
-            header .text-base {
-                font-size: 0.85rem;
-            }
-            
-            header .text-[10px] {
-                font-size: 7px;
-            }
-            
-            /* Hide desktop nav links on mobile */
-            header nav {
-                display: none;
-            }
-
-        /* Fix navbar spacing on mobile - target the inner container */
         @media (max-width: 768px) {
             header > div {
                 padding-left: 0.75rem !important;
                 padding-right: 0.75rem !important;
                 height: 60px !important;
             }
-            
-            /* Hide brand text on tablet, show only logo */
-            header .text-base,
-            header .text-[10px] {
-                display: none;
+            header img {
+                width: 32px !important;
+                height: 32px !important;
             }
-            
-            /* Hide Logout button on mobile */
-            header button,
-            header a[href="login.html"] {
-                display: none;
+            header .flex.items-center.gap-6 {
+                gap: 0.6rem !important;
             }
         }
 
         @media (max-width: 576px) {
             header > div {
-                padding-left: 0.5rem !important;
-                padding-right: 0.5rem !important;
+                padding-left: 0.6rem !important;
+                padding-right: 0.6rem !important;
                 height: 56px !important;
             }
-            
             header img {
-                width: 32px !important;
-                height: 32px !important;
+                width: 30px !important;
+                height: 30px !important;
             }
-            
-            /* Hide all text elements, keep only logo and icons */
-            header div > div {
-                display: none;
+            header .bi-bag,
+            header .bi-heart {
+                font-size: 1.3rem !important;
             }
-            
-            /* Keep the logo image visible */
-            header img {
-                display: block;
-            }
-            
-            /* Adjust icon spacing */
-            header .flex.items-center.gap-4,
-            header .flex.items-center.gap-3,
             header .flex.items-center.gap-6 {
-                gap: 0.6rem !important;
+                gap: 0.5rem !important;
+            }
+            #cartCount, #wishlistCount {
+                width: 16px !important;
+                height: 16px !important;
+                font-size: 8px !important;
+                top: -7px !important;
+                right: -7px !important;
+            }
+            #menu-btn {
+                font-size: 1.6rem !important;
             }
         }
 
@@ -626,8 +597,6 @@
                 padding: 8px 12px !important;
                 margin: 5px !important;
             }
-        }
-
         }
 
     </style>
