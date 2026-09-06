@@ -869,6 +869,35 @@ app.get("/api/contact", async (req, res) => {
     res.json(contactMessages.slice().reverse());
 });
 
+// DELETE /api/contact/:id - Delete a contact message (Supabase primary, local fallback)
+app.delete("/api/contact/:id", async (req, res) => {
+    const id = String(req.params.id || "").trim();
+    if (!id) return res.status(400).json({ success: false, message: "Message id is required" });
+
+    let deletedSupabase = false;
+    try {
+        await supabase.deleteMessage(id);
+        deletedSupabase = true;
+        console.log("Contact message deleted from Supabase:", id);
+    } catch (e) {
+        console.error("Supabase deleteMessage failed:", e.message);
+    }
+
+    // Always remove from the local in-memory list too (keeps UI consistent)
+    const before = contactMessages.length;
+    contactMessages = contactMessages.filter(m => String(m.id || m._id || "") !== id);
+    if (contactMessages.length === before && !deletedSupabase) {
+        return res.status(404).json({ success: false, message: "Message not found" });
+    }
+
+    res.json({
+        success: true,
+        message: deletedSupabase ? "Message deleted from Supabase" : "Message deleted locally (Supabase unavailable)",
+        id: id,
+        deletedFromSupabase: deletedSupabase
+    });
+});
+
 // â”€â”€ CUSTOMERS API (admin: user management) â”€â”€
 app.get("/api/customers", async (req, res) => {
     try {

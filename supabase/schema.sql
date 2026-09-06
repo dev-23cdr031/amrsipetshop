@@ -97,10 +97,17 @@ create table public.contact_messages (
     email      text        not null,
     subject    text        not null,
     message    text        not null,
-    created_at timestamptz not null default now()
+    created_at timestamptz not null default now(),
+    updated_at timestamptz not null default now()
 );
 
 create index contact_messages_created_at_idx on public.contact_messages (created_at desc);
+
+-- Keep updated_at fresh automatically (matches products/orders tables)
+drop trigger if exists contact_messages_set_updated_at on public.contact_messages;
+create trigger contact_messages_set_updated_at
+    before update on public.contact_messages
+    for each row execute function public.set_updated_at();
 
 -- â”€â”€ PROMO CODES â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 create table public.promo_codes (

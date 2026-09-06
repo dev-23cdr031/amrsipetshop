@@ -340,15 +340,29 @@
             empty.style.display = "none";
             wrap.innerHTML = messages.map(function (m) {
                 const d = m.createdAt ? new Date(m.createdAt).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "-";
+                const mid = encodeURIComponent(String(m.id || m._id || ""));
                 return '<div style="padding:16px 20px;border-bottom:1px solid rgba(255,255,255,0.08);">' +
                     '<div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;margin-bottom:4px;">' +
                     '<strong style="color:var(--ad-text);">' + escapeHtml(m.name) + '</strong>' +
                     '<span style="color:var(--ad-muted);font-size:0.76rem;">' + escapeHtml(m.email || "") + (m.phone ? ' &middot; ' + escapeHtml(m.phone) : '') + ' &middot; ' + escapeHtml(d) + '</span>' +
                     '</div>' +
                     '<div style="color:var(--ad-amber-light);font-size:0.86rem;font-weight:600;margin-bottom:6px;">' + escapeHtml(m.subject) + '</div>' +
-                    '<p style="color:var(--ad-muted);font-size:0.86rem;margin:0;white-space:pre-wrap;">' + escapeHtml(m.message) + '</p>' +
-                '</div>';
+                    '<p style="color:var(--ad-muted);font-size:0.86rem;margin:0 0 8px;white-space:pre-wrap;">' + escapeHtml(m.message) + '</p>' +
+                    '<button class="ad-btn ad-btn-danger ad-btn-sm" onclick="deleteMessage(\'' + mid + '\')"><i class="bi bi-trash"></i> Delete</button>' +
+                    '</div>';
             }).join("");
+        }
+
+        async function deleteMessage(id) {
+            if (!id) { toast("Message id missing", "error"); return; }
+            if (!confirm("Delete this message permanently?")) return;
+            try {
+                const res = await fetch("/api/contact/" + encodeURIComponent(id), { method: "DELETE" });
+                const data = await res.json();
+                if (!res.ok || !data.success) { toast(data.message || "Delete failed", "error"); return; }
+                toast(data.message || "Message deleted", "success");
+                await loadMessages();
+            } catch (e) { toast("Network error", "error"); }
         }
 
         function productOptions() {

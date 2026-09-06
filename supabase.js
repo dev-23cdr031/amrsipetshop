@@ -244,6 +244,10 @@ async function insertMessage(msg) {
     await sb("/contact_messages", { method: "POST", headers: { Prefer: "return=representation" }, body: JSON.stringify(camelToSnakeMessage(msg)) });
 }
 
+async function deleteMessage(messageId) {
+    await sb("/contact_messages?id=eq." + encodeURIComponent(messageId), { method: "DELETE" });
+}
+
 module.exports = {
     fetchOrders,
     insertOrder,
@@ -255,6 +259,7 @@ module.exports = {
     deleteProduct,
     fetchMessages,
     insertMessage,
+    deleteMessage,
     snakeToCamelOrder,
     camelToSnakeOrder,
     sb,
