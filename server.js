@@ -20,6 +20,10 @@ let orders = [];
 let contactMessages = [];
 let customers = store.loadCustomers();
 let sessions = [];
+// True when local orders differ from what is safely stored in Supabase
+// (e.g. a DB write failed). While dirty we must NOT overwrite the in-memory
+// array with stale Supabase data, otherwise admin status changes would revert.
+let ordersDirty = false;
 
 function mergeProducts() {
     const merged = baseProducts.map((p) => {
@@ -42,16 +46,30 @@ function findProduct(id) { return products.find((p) => Number(p.id) === Number(i
 
 // â”€â”€ Supabase persistence (primary) with local JSON fallback â”€â”€
 async function persistOrderToSupabase(order) {
-    try { await supabase.insertOrder(order); }
-    catch (e) { console.error("Supabase insertOrder failed:", e.message); persistOrders(); }
+    try { await supabase.insertOrder(order); ordersDirty = false; }
+    catch (e) {
+        console.error("Supabase insertOrder failed:", e.message);
+        ordersDirty = true;
+        persistOrders();
+    }
 }
 async function updateOrderInSupabase(orderId, fields) {
-    try { await supabase.updateOrder(orderId, fields); }
-    catch (e) { console.error("Supabase updateOrder failed:", e.message); persistOrders(); }
+    try { await supabase.updateOrder(orderId, fields); ordersDirty = false; return true; }
+    catch (e) {
+        console.error("Supabase updateOrder failed:", e.message);
+        // Keep local JSON as a fallback so the change is not lost across restarts
+        ordersDirty = true;
+        persistOrders();
+        return false;
+    }
 }
 async function deleteOrderFromSupabase(orderId) {
-    try { await supabase.deleteOrder(orderId); }
-    catch (e) { console.error("Supabase deleteOrder failed:", e.message); persistOrders(); }
+    try { await supabase.deleteOrder(orderId); ordersDirty = false; }
+    catch (e) {
+        console.error("Supabase deleteOrder failed:", e.message);
+        ordersDirty = true;
+        persistOrders();
+    }
 }
 async function persistMessageToSupabase(msg) {
     try { await supabase.insertMessage(msg); }
@@ -63,15 +81,18 @@ async function hydrateFromSupabase() {
         // If Supabase returns data, use it; otherwise fall back to local orders
         if (supabaseOrders && supabaseOrders.length > 0) {
             orders = supabaseOrders;
+            ordersDirty = false;
             console.log("Hydrated", orders.length, "orders from Supabase");
         } else {
             console.log("Supabase orders table is empty, using local orders.json");
             orders = store.loadOrders();
+            ordersDirty = false;
             console.log("Loaded", orders.length, "orders from local orders.json");
         }
     } catch (e) {
         console.error("Supabase order hydration failed:", e.message);
         orders = store.loadOrders();
+        ordersDirty = false;
         console.log("Fell back to local orders.json:", orders.length, "orders");
     }
     try {
@@ -474,31 +495,35 @@ app.post("/api/orders", async (req, res) => {
 });
 
 app.get("/api/orders", async (req, res) => {
-    try {
-        // Always fetch fresh orders from Supabase for admin dashboard
-        const supabaseOrders = await supabase.fetchOrders();
-        if (supabaseOrders && supabaseOrders.length > 0) {
-            orders = supabaseOrders;
-        } else {
-            console.log("Supabase orders empty, using local orders");
+    if (!ordersDirty) {
+        try {
+            // Always fetch fresh orders from Supabase for admin dashboard
+            const supabaseOrders = await supabase.fetchOrders();
+            if (supabaseOrders && supabaseOrders.length > 0) {
+                orders = supabaseOrders;
+            } else {
+                console.log("Supabase orders empty, using local orders");
+                orders = store.loadOrders();
+            }
+        } catch (e) {
+            console.error("Supabase fetch failed in /api/orders, using local orders:", e.message);
             orders = store.loadOrders();
         }
-    } catch (e) {
-        console.error("Supabase fetch failed in /api/orders, using local orders:", e.message);
-        orders = store.loadOrders();
     }
     res.json(orders.slice().reverse());
 });
 
 app.get("/api/orders/:id", async (req, res) => {
-    // Refresh from Supabase first
-    try {
-        const supabaseOrders = await supabase.fetchOrders();
-        if (supabaseOrders && supabaseOrders.length > 0) {
-            orders = supabaseOrders;
+    // Refresh from Supabase first (unless local has unsaved changes)
+    if (!ordersDirty) {
+        try {
+            const supabaseOrders = await supabase.fetchOrders();
+            if (supabaseOrders && supabaseOrders.length > 0) {
+                orders = supabaseOrders;
+            }
+        } catch (e) {
+            console.error("Supabase fetch failed in /api/orders/:id, using local orders:", e.message);
         }
-    } catch (e) {
-        console.error("Supabase fetch failed in /api/orders/:id, using local orders:", e.message);
     }
     const order = orders.find((o) => o.orderId === req.params.id);
     if (!order) return res.status(404).json({ success: false, message: "Order not found" });
@@ -508,14 +533,16 @@ app.get("/api/orders/:id", async (req, res) => {
 app.patch("/api/orders/:id/status", async (req, res) => {
     const orderId = req.params.id;
 
-    // Always refresh from Supabase first to get the latest orders
-    try {
-        const supabaseOrders = await supabase.fetchOrders();
-        if (supabaseOrders && supabaseOrders.length > 0) {
-            orders = supabaseOrders;
+    // Refresh from Supabase first to get the latest orders (unless local has unsaved changes)
+    if (!ordersDirty) {
+        try {
+            const supabaseOrders = await supabase.fetchOrders();
+            if (supabaseOrders && supabaseOrders.length > 0) {
+                orders = supabaseOrders;
+            }
+        } catch (e) {
+            console.error("Supabase fetch failed before status update, using local orders:", e.message);
         }
-    } catch (e) {
-        console.error("Supabase fetch failed before status update, using local orders:", e.message);
     }
 
     let order = orders.find((o) => o.orderId === orderId);
@@ -547,10 +574,16 @@ app.patch("/api/orders/:id/status", async (req, res) => {
         persistOverrides();
     }
     if (status === "shipped" && !order.trackingNumber) order.trackingNumber = "TRK" + Date.now().toString().slice(-9);
-    await updateOrderInSupabase(order.orderId, { status: order.status, trackingNumber: order.trackingNumber });
+    const supabaseUpdated = await updateOrderInSupabase(order.orderId, { status: order.status, trackingNumber: order.trackingNumber });
     
-    // Refresh orders array from Supabase to ensure it's always in sync
-    try { orders = await supabase.fetchOrders(); } catch (e) { console.error("Failed to refresh orders after status update:", e); }
+    // Refresh orders array from Supabase ONLY if the update actually persisted there.
+    // Otherwise keep the local (in-memory) change so the new status is not clobbered
+    // by a stale Supabase snapshot (fixes status reverting after failed DB update).
+    if (supabaseUpdated) {
+        try { orders = await supabase.fetchOrders(); } catch (e) { console.error("Failed to refresh orders after status update:", e); }
+    } else {
+        persistOrders();
+    }
 
     // â”€â”€ Realtime broadcast â”€â”€
     // Customer's tracking page for this order
@@ -573,14 +606,16 @@ app.patch("/api/orders/:id/status", async (req, res) => {
 app.patch("/api/orders/:id", async (req, res) => {
     const orderId = req.params.id;
 
-    // Refresh from Supabase first
-    try {
-        const supabaseOrders = await supabase.fetchOrders();
-        if (supabaseOrders && supabaseOrders.length > 0) {
-            orders = supabaseOrders;
+    // Refresh from Supabase first (unless local has unsaved changes)
+    if (!ordersDirty) {
+        try {
+            const supabaseOrders = await supabase.fetchOrders();
+            if (supabaseOrders && supabaseOrders.length > 0) {
+                orders = supabaseOrders;
+            }
+        } catch (e) {
+            console.error("Supabase fetch failed before order edit, using local orders:", e.message);
         }
-    } catch (e) {
-        console.error("Supabase fetch failed before order edit, using local orders:", e.message);
     }
 
     const orderIndex = orders.findIndex((o) => o.orderId === orderId);
@@ -590,11 +625,13 @@ app.patch("/api/orders/:id", async (req, res) => {
     const updatedOrder = { ...orders[orderIndex], ...req.body };
     orders[orderIndex] = updatedOrder;
     
-    // Update in Supabase
-    await updateOrderInSupabase(updatedOrder.orderId, req.body);
-    
-    // Refresh orders array from Supabase
-    try { orders = await supabase.fetchOrders(); } catch (e) { console.error("Failed to refresh orders after edit:", e); }
+    // Update in Supabase - only refresh from Supabase if it persisted there
+    const supabaseUpdatedEdit = await updateOrderInSupabase(updatedOrder.orderId, req.body);
+    if (supabaseUpdatedEdit) {
+        try { orders = await supabase.fetchOrders(); } catch (e) { console.error("Failed to refresh orders after edit:", e); }
+    } else {
+        persistOrders();
+    }
     
     // Broadcast to admin dashboards to refresh
     broadcast("order:updated", { orderId: updatedOrder.orderId, order: updatedOrder }, function (c) {
@@ -607,22 +644,28 @@ app.patch("/api/orders/:id", async (req, res) => {
 app.delete("/api/orders/:id", async (req, res) => {
     const orderId = req.params.id;
 
-    // Refresh from Supabase first
-    try {
-        const supabaseOrders = await supabase.fetchOrders();
-        if (supabaseOrders && supabaseOrders.length > 0) {
-            orders = supabaseOrders;
+    // Refresh from Supabase first (unless local has unsaved changes)
+    if (!ordersDirty) {
+        try {
+            const supabaseOrders = await supabase.fetchOrders();
+            if (supabaseOrders && supabaseOrders.length > 0) {
+                orders = supabaseOrders;
+            }
+        } catch (e) {
+            console.error("Supabase fetch failed before order delete, using local orders:", e.message);
         }
-    } catch (e) {
-        console.error("Supabase fetch failed before order delete, using local orders:", e.message);
     }
 
     const idx = orders.findIndex((o) => o.orderId === orderId);
     if (idx === -1) return res.status(404).json({ success: false, message: "Order not found" });
     const [removed] = orders.splice(idx, 1);
     await deleteOrderFromSupabase(removed.orderId);
-    // Refresh orders array from Supabase to ensure it's always in sync
-    try { orders = await supabase.fetchOrders(); } catch (e) { console.error("Failed to refresh orders after delete:", e); }
+    // Refresh orders array from Supabase only if the delete persisted there
+    if (!ordersDirty) {
+        try { orders = await supabase.fetchOrders(); } catch (e) { console.error("Failed to refresh orders after delete:", e); }
+    } else {
+        persistOrders();
+    }
     // Broadcast to admin dashboards to refresh
     broadcast("order:deleted", { orderId: removed.orderId }, function (c) {
         return c.channel === "admin";
@@ -721,14 +764,18 @@ app.get("/api/my-orders", async (req, res) => {
     if (!customerId && !email) return res.status(400).json({ success: false, message: "customerId or email required" });
     
     let allOrders;
-    try {
-        // Always fetch fresh orders from Supabase first to ensure we have the latest data
-        allOrders = await supabase.fetchOrders();
-        // Update in-memory orders array to stay in sync with Supabase
-        orders = allOrders;
-    } catch (e) {
-        console.error("Supabase fetch failed in /api/my-orders, using local orders:", e.message);
-        allOrders = orders; // Fallback to in-memory array if Supabase is unreachable
+    if (!ordersDirty) {
+        try {
+            // Fetch fresh orders from Supabase to ensure we have the latest data
+            allOrders = await supabase.fetchOrders();
+            // Update in-memory orders array to stay in sync with Supabase
+            orders = allOrders;
+        } catch (e) {
+            console.error("Supabase fetch failed in /api/my-orders, using local orders:", e.message);
+            allOrders = orders; // Fallback to in-memory array if Supabase is unreachable
+        }
+    } else {
+        allOrders = orders; // Local has unsaved changes — use it so status updates show immediately
     }
     
     const myOrders = allOrders.filter(function (o) {

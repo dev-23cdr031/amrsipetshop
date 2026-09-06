@@ -75,8 +75,15 @@ create table public.orders (
         check (status in ('pending','processing','shipped','delivered','cancelled')),
     tracking_number          text,
     estimated_delivery       timestamptz,
-    created_at               timestamptz   not null default now()
+    created_at               timestamptz   not null default now(),
+    updated_at               timestamptz   not null default now()
 );
+
+-- Keep updated_at fresh automatically (matches products table)
+drop trigger if exists orders_set_updated_at on public.orders;
+create trigger orders_set_updated_at
+    before update on public.orders
+    for each row execute function public.set_updated_at();
 
 create index orders_created_at_idx on public.orders (created_at desc);
 create index orders_status_idx     on public.orders (status);

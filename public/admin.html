@@ -206,7 +206,11 @@
         <div class="ad-modal-head"><h3>Order Details</h3><button class="ad-modal-close" onclick="closeOrderModal()">&times;</button></div>
         <div class="ad-modal-body" id="orderModalBody"></div>
         <div class="ad-modal-foot">
-            <select class="ad-select" id="orderStatusSelect" onchange="updateOrderStatus()"><option value="pending">Pending</option><option value="processing">Processing</option><option value="shipped">Shipped</option><option value="delivered">Delivered</option><option value="cancelled">Cancelled</option></select>
+            <div style="flex:1;display:flex;flex-direction:column;gap:4px;">
+                <label style="font-size:0.72rem;color:var(--ad-muted);font-weight:600;text-transform:uppercase;">Update Status</label>
+                <select class="ad-select" id="orderStatusSelect"><option value="pending">Pending</option><option value="processing">Processing</option><option value="shipped">Shipped</option><option value="delivered">Delivered</option><option value="cancelled">Cancelled</option></select>
+            </div>
+            <button class="ad-btn ad-btn-primary" id="saveStatusBtn" onclick="updateOrderStatus()"><i class="bi bi-check-lg"></i> Save Status</button>
             <button class="ad-btn ad-btn-ghost" onclick="closeOrderModal()">Close</button>
         </div>
     </div>
@@ -642,13 +646,20 @@
         async function updateOrderStatus() {
             if (!currentOrderId) return;
             const status = document.getElementById("orderStatusSelect").value;
+            const btn = document.getElementById("saveStatusBtn");
+            const originalHtml = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Saving...';
             try {
                 const res = await fetch("/api/orders/" + currentOrderId + "/status", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status: status }) });
                 const data = await res.json();
-                if (!res.ok || !data.success) { toast(data.message || "Update failed", "error"); return; }
-                toast("Order status updated to " + cap(status), "success");
+                if (!res.ok || !data.success) { throw new Error(data.message || "Update failed"); }
+                toast("Order status saved: " + cap(status), "success");
                 await loadOrders();
-            } catch (e) { toast("Network error", "error"); }
+                closeOrderModal();
+            } catch (e) { toast(e.message || "Network error", "error"); }
+            btn.disabled = false;
+            btn.innerHTML = originalHtml;
         }
 
         async function deleteOrder(orderId) {
