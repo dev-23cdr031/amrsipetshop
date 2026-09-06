@@ -315,7 +315,18 @@
             try { orders = await (await fetch("/api/orders")).json(); } catch (e) { orders = []; }
             renderOverview(); renderOrders();
         }
-        function loadUsers() { users = JSON.parse(localStorage.getItem("petshop_users") || "[]"); }
+        async function loadUsers() {
+            try {
+                // Fetch customers from the server (Supabase primary, local fallback)
+                const res = await fetch("/api/customers");
+                if (res.ok) { users = await res.json(); renderUsers(); }
+                else throw new Error("bad status " + res.status);
+            } catch (e) {
+                console.error("loadUsers from server failed, using localStorage fallback:", e.message);
+                users = JSON.parse(localStorage.getItem("petshop_users") || "[]");
+                renderUsers();
+            }
+        }
 
         async function loadMessages() {
             try { messages = await (await fetch("/api/contact")).json(); } catch (e) { messages = []; }
@@ -819,6 +830,8 @@
 
         // auto-refresh orders every 20s so new orders appear in admin
         setInterval(function () { if (document.getElementById("view-orders").classList.contains("active")) loadOrders(); }, 20000);
+        // auto-refresh customers every 20s so new signups/logins appear in admin
+        setInterval(function () { if (document.getElementById("view-users").classList.contains("active")) loadUsers(); }, 20000);
 
         init();
 </script>

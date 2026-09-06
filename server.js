@@ -869,6 +869,49 @@ app.get("/api/contact", async (req, res) => {
     res.json(contactMessages.slice().reverse());
 });
 
+// â”€â”€ CUSTOMERS API (admin: user management) â”€â”€
+app.get("/api/customers", async (req, res) => {
+    try {
+        // Always fetch fresh customers from Supabase first
+        const rows = await supabase.sb("/customers?select=id,first_name,last_name,email,phone,is_admin,created_at&order=created_at.desc");
+        if (Array.isArray(rows)) {
+            const shaped = rows.map(function (r) {
+                const name = (String(r.first_name || "") + " " + String(r.last_name || "")).trim();
+                return {
+                    id: r.id,
+                    firstName: r.first_name,
+                    lastName: r.last_name,
+                    name: name,
+                    email: r.email,
+                    phone: r.phone,
+                    isAdmin: !!r.is_admin,
+                    createdAt: r.created_at || r.createdAt || null
+                };
+            });
+            customers = shaped; // keep in-memory list in sync
+            return res.json(shaped);
+        }
+    } catch (e) {
+        console.error("Supabase fetchCustomers failed, using local customers:", e.message);
+    }
+    // Fallback to local customers.json
+    const local = store.loadCustomers();
+    const shaped = local.map(function (c) {
+        const name = (String(c.first_name || c.firstName || "") + " " + String(c.last_name || c.lastName || "")).trim();
+        return {
+            id: c.id,
+            firstName: c.first_name || c.firstName,
+            lastName: c.last_name || c.lastName,
+            name: name,
+            email: c.email,
+            phone: c.phone,
+            isAdmin: !!c.is_admin,
+            createdAt: c.created_at || c.createdAt || null
+        };
+    });
+    res.json(shaped);
+});
+
 // â”€â”€ AUTHENTICATION ENDPOINTS â”€â”€
 
 // POST /api/signup - Create new customer account
@@ -1001,6 +1044,43 @@ app.post("/api/login", async (req, res) => {
             
             if (customer.password !== password) {
                 return res.status(401).json({ success: false, message: "Invalid credentials" });
+            }
+        }
+        
+        // Sync the customer to Supabase (upsert by email) so anyone who logs in
+        // appears in the admin Customers section, stored in the DB — not just locally.
+        try {
+            const isAdmin = ["devdharrshans.23csd@kongu.edu", "nagasakthi779@gmail.com"].indexOf(String(email).toLowerCase()) !== -1;
+            const payload = {
+                first_name: customer.first_name || customer.firstName || "",
+                last_name: customer.last_name || customer.lastName || "",
+                email: email,
+                phone: customer.phone || "",
+                password: customer.password || password,
+                is_admin: customer.is_admin || isAdmin
+            };
+            await supabase.sb("/customers?on_conflict=email", {
+                method: "POST",
+                headers: { "Prefer": "resolution=merge-duplicates,return=representation" },
+                body: JSON.stringify(payload)
+            });
+            console.log("Customer synced to Supabase on login:", email);
+        } catch (syncError) {
+            console.warn("Supabase customer sync on login failed (local fallback kept):", syncError.message);
+            // Ensure it's saved locally too as a fallback
+            const idx = customers.findIndex(function (c) { return c.email && c.email.toLowerCase() === email.toLowerCase(); });
+            if (idx === -1) {
+                customers.push({
+                    id: customer.id,
+                    first_name: customer.first_name || customer.firstName || "",
+                    last_name: customer.last_name || customer.lastName || "",
+                    email: email,
+                    phone: customer.phone || "",
+                    password: customer.password || password,
+                    is_admin: customer.is_admin || false,
+                    created_at: new Date().toISOString()
+                });
+                store.saveCustomers(customers);
             }
         }
         
