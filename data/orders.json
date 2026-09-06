@@ -1,54 +1,5 @@
 [
   {
-    "orderId": "AMSMTNB36UD781F73",
-    "customerId": "cust_1788547644510_3talzgkky",
-    "customerName": "DEV DHARRSHAN S 23CDR031",
-    "customerEmail": "devdharrshan421@gmail.com",
-    "customerPhone": "9080620649",
-    "shippingAddress": "103/9d Professors colony,Ramamoorthy Road,Virudhunagar, Virudhunagar, Tamil Nadu - 626001",
-    "address": {
-      "city": "Virudhunagar",
-      "name": "DEV DHARRSHAN S 23CDR031",
-      "phone": "9080620649",
-      "state": "Tamil Nadu",
-      "address": "103/9d Professors colony,Ramamoorthy Road,Virudhunagar",
-      "pincode": "626001",
-      "landmark": ""
-    },
-    "items": [
-      {
-        "id": 1,
-        "name": "Royal Breeding feed Guppy fish",
-        "image": "/images/logo.jpeg",
-        "price": 0,
-        "quantity": 1
-      },
-      {
-        "id": 2,
-        "name": "Freeze Dried Tubifex Worms 20grms",
-        "image": "/images/product-01.jpeg",
-        "price": 10,
-        "quantity": 1
-      }
-    ],
-    "subtotal": 10,
-    "shipping": 100,
-    "tax": 1,
-    "discount": 0,
-    "promoCode": null,
-    "total": 111,
-    "paymentMethod": "cod",
-    "paymentDetails": null,
-    "billingSameAsShipping": true,
-    "billingAddress": null,
-    "paymentStatus": "confirmed",
-    "deliveryMethod": "standard",
-    "status": "processing",
-    "trackingNumber": null,
-    "estimatedDelivery": "2026-09-08T18:47:24.518+00:00",
-    "createdAt": "2026-09-04T18:47:24.518+00:00"
-  },
-  {
     "orderId": "AMSOFFMTNB6C3KB16FED",
     "customerId": null,
     "customerName": "ANUSREE D",

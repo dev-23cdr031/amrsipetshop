@@ -686,18 +686,32 @@ app.delete("/api/orders/:id", async (req, res) => {
     const idx = orders.findIndex((o) => o.orderId === orderId);
     if (idx === -1) return res.status(404).json({ success: false, message: "Order not found" });
     const [removed] = orders.splice(idx, 1);
-    await deleteOrderFromSupabase(removed.orderId);
-    // Refresh orders array from Supabase only if the delete persisted there
-    if (!ordersDirty) {
-        try { orders = await supabase.fetchOrders(); } catch (e) { console.error("Failed to refresh orders after delete:", e); }
-    } else {
-        persistOrders();
+
+    // Always persist the removal to local file FIRST (so it survives restarts)
+    persistOrders();
+
+    // Then attempt Supabase delete (best effort)
+    let supabaseDeleted = false;
+    try {
+        await supabase.deleteOrder(orderId);
+        supabaseDeleted = true;
+        ordersDirty = false;
+        console.log("Order deleted from Supabase:", orderId);
+    } catch (e) {
+        console.error("Supabase deleteOrder failed (order removed from local):", e.message);
+        ordersDirty = true;
     }
+
     // Broadcast to admin dashboards to refresh
     broadcast("order:deleted", { orderId: removed.orderId }, function (c) {
         return c.channel === "admin";
     });
-    res.json({ success: true, message: "Order deleted", orderId: removed.orderId });
+    res.json({
+        success: true,
+        message: supabaseDeleted ? "Order deleted from Supabase" : "Order deleted locally (Supabase unavailable)",
+        orderId: removed.orderId,
+        deletedFromSupabase: supabaseDeleted
+    });
 });
 
 
