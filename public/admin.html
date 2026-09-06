@@ -774,6 +774,12 @@
             // Update badge in navigation
             updateNewOrderBadge();
             
+            // Refresh products (stock was decremented) and overview (low stock alerts)
+            loadProducts().then(function() {
+                renderOverview();
+                renderProducts();
+            });
+            
             // If we're on the orders view, refresh the display
             if (document.getElementById("view-orders").classList.contains("active")) {
                 renderOrders();
@@ -781,7 +787,7 @@
             }
         });
         
-        // Listen for order status updates
+                // Listen for order status updates
         adminRealtime.on("order:status", function(payload) {
             const orderIndex = orders.findIndex(o => o.orderId === payload.orderId);
             if (orderIndex !== -1) {
@@ -795,6 +801,17 @@
                     loadStats();
                 }
             }
+        });
+
+        // Listen for stock/product updates (order placed, stock changed, cancellation)
+        // This ensures low stock alerts update in real-time without manual refresh
+        adminRealtime.on("product:updated", function(payload) {
+            if (payload.products) products = payload.products;
+            loadProducts().then(function() {
+                renderOverview(); // Refreshes low stock alerts
+                renderProducts();
+            });
+            toast("Stock levels updated", "info");
         });
         
         // Request notification permissions on page load
@@ -846,6 +863,12 @@
         setInterval(function () { if (document.getElementById("view-orders").classList.contains("active")) loadOrders(); }, 20000);
         // auto-refresh customers every 20s so new signups/logins appear in admin
         setInterval(function () { if (document.getElementById("view-users").classList.contains("active")) loadUsers(); }, 20000);
+        // auto-refresh overview (low stock alerts, stats) every 20s
+        setInterval(function () {
+            if (document.getElementById("view-overview").classList.contains("active")) {
+                loadProducts().then(function() { renderOverview(); });
+            }
+        }, 20000);
 
         init();
 </script>

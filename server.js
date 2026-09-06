@@ -481,11 +481,27 @@ app.post("/api/orders", async (req, res) => {
 
     // Persist the order to Supabase (falls back to local orders.json on failure).
     await persistOrderToSupabase(order);
+
+    // Sync the updated stock levels to Supabase so admin dashboard shows real-time data
+    try {
+        for (const item of validated) {
+            const current = findProduct(item.id);
+            if (current) {
+                await supabase.updateProduct(item.id, { stock: Math.max(0, (current.stock || 0)) });
+            }
+        }
+        console.log("Stock synced to Supabase for", validated.length, "product(s)");
+    } catch (e) {
+        console.error("Supabase stock sync failed (kept in local overrides):", e.message);
+    }
+
     console.log("Order received:", order.orderId, "total Rs" + order.total, "status=processing");
 
     // â”€â”€ Realtime broadcast â”€â”€
     // Notify all ADMIN dashboards of a brand-new order
     broadcast("order:new", { order: order }, function (c) { return c.channel === "admin"; });
+    // Notify admin dashboards that stock changed (refreshes low stock alerts)
+    broadcast("product:updated", { products: products.filter((p) => !p.archived) }, function (c) { return c.channel === "admin"; });
     // Notify the customer's tracking page (if open) of the initial status
     broadcast("order:status", { orderId: order.orderId, status: order.status, order: order }, function (c) {
         return c.channel === "order" && c.orderId === order.orderId;
@@ -572,6 +588,17 @@ app.patch("/api/orders/:id/status", async (req, res) => {
             if (current) productOverrides[item.id] = Object.assign({}, productOverrides[item.id] || {}, { stock: (current.stock || 0) + item.quantity });
         });
         persistOverrides();
+        // Sync restored stock to Supabase so admin low stock alerts update in real-time
+        try {
+            for (const item of order.items) {
+                const current = findProduct(item.id);
+                if (current) await supabase.updateProduct(item.id, { stock: current.stock || 0 });
+            }
+        } catch (e) {
+            console.error("Supabase stock restore sync failed (kept in local overrides):", e.message);
+        }
+        // Broadcast stock update to admin dashboards
+        broadcast("product:updated", { products: products.filter((p) => !p.archived) }, function (c) { return c.channel === "admin"; });
     }
     if (status === "shipped" && !order.trackingNumber) order.trackingNumber = "TRK" + Date.now().toString().slice(-9);
     const supabaseUpdated = await updateOrderInSupabase(order.orderId, { status: order.status, trackingNumber: order.trackingNumber });
@@ -788,7 +815,21 @@ app.get("/api/my-orders", async (req, res) => {
 });
 
 // â”€â”€ DASHBOARD STATS / ANALYTICS API â”€â”€
-app.get("/api/stats", (req, res) => {
+app.get("/api/stats", async (req, res) => {
+    // Always refresh products from Supabase to get latest stock levels for low stock alerts
+    try {
+        const supabaseProducts = await supabase.fetchProducts();
+        if (supabaseProducts && supabaseProducts.length > 0) {
+            const overrides = store.loadOverrides();
+            products = supabaseProducts.map((p) => {
+                const ov = overrides[p.id];
+                return ov ? Object.assign({}, p, ov) : Object.assign({}, p);
+            });
+        }
+    } catch (e) {
+        console.error("Supabase fetch failed in /api/stats, using local products:", e.message);
+    }
+
     const totalRevenue = orders.filter((o) => o.status !== "cancelled").reduce((s, o) => s + (o.total || 0), 0);
     const statusCounts = VALID_STATUSES.reduce((acc, st) => { acc[st] = orders.filter((o) => o.status === st).length; return acc; }, {});
     const usersCount = Number(req.headers["x-user-count"]) || 0;

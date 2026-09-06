@@ -64,6 +64,9 @@
         this.es.addEventListener("order:status", function (ev) {
             self._dispatch("order:status", ev);
         });
+        this.es.addEventListener("product:updated", function (ev) {
+            self._dispatch("product:updated", ev);
+        });
         this.es.addEventListener("heartbeat", function () {
             self.onStatus(true, "alive");
         });
