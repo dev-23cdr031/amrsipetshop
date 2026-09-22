@@ -870,7 +870,7 @@ app.get("/api/stats", async (req, res) => {
         });
     });
 
-    const lowStock = products.filter((p) => !p.archived && (p.stock || 0) <= 5).map((p) => ({ id: p.id, name: p.name, stock: p.stock || 0 }));
+    const lowStock = products.filter((p) => !p.archived && (p.stock || 0) <= 2).map((p) => ({ id: p.id, name: p.name, stock: p.stock || 0 }));
 
     res.json({
         totalRevenue: Math.round(totalRevenue),
