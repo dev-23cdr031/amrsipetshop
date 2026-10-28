@@ -239,6 +239,13 @@
             animation: marquee-scroll 30s linear infinite;
         }
 
+        /* Keep the feature strip lively and readable on phones. */
+        @media (max-width: 768px) {
+            .marquee {
+                animation-duration: 16s;
+            }
+        }
+
         @keyframes marquee-scroll {
             0% { transform: translateX(0); }
             100% { transform: translateX(-50%); }
@@ -419,36 +426,6 @@
             font-family: 'JetBrains Mono', monospace;
         }
 
-        /* Header action anchors keep their count badges attached to their own icon. */
-        header .header-action {
-            position: relative !important;
-            display: inline-flex !important;
-            flex: 0 0 2.25rem;
-            width: 2.25rem;
-            height: 2.25rem;
-            align-items: center;
-            justify-content: center;
-        }
-
-        header .header-action .header-count {
-            position: absolute !important;
-            top: -0.3125rem !important;
-            right: -0.3125rem !important;
-            bottom: auto !important;
-            left: auto !important;
-            z-index: 1;
-            display: inline-flex !important;
-            width: 1.125rem !important;
-            height: 1.125rem !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            transform: none !important;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.5625rem !important;
-            line-height: 1 !important;
-        }
-
         /* Mobile Navbar â€” Clean, No Conflicts */
         @media (max-width: 991px) {
             header > div {
@@ -470,18 +447,6 @@
             /* Right actions gap */
             header > div > div:last-child {
                 gap: 0.6rem !important;
-            }
-            header .header-action {
-                flex-basis: 2rem;
-                width: 2rem;
-                height: 2rem;
-            }
-            header .header-action .header-count {
-                width: 17px !important;
-                height: 17px !important;
-                font-size: 8px !important;
-                top: -7px !important;
-                right: -7px !important;
             }
         }
 
@@ -513,22 +478,6 @@
             header > div > div:last-child {
                 gap: 0.3rem !important;
             }
-            header .header-action {
-                flex-basis: 2rem;
-                width: 2rem;
-                height: 2rem;
-            }
-            header .header-action .header-count {
-                width: 14px !important;
-                height: 14px !important;
-                font-size: 7px !important;
-                /* Pin the count into the icon corner instead of outside its action. */
-                top: 0 !important;
-                right: 4px !important;
-            }
-            .bi-bag, .bi-heart {
-                font-size: 1.1rem !important;
-            }
             #menu-btn {
                 margin-left: 0 !important;
                 font-size: 1.25rem !important;
@@ -536,7 +485,7 @@
             }
         }
 
-        /* Keep the three mobile actions on a precise, even rhythm on very narrow screens. */
+        /* Keep the mobile menu control aligned at very narrow widths. */
         @media (max-width: 220px) {
             header > div {
                 padding-left: 6px !important;
@@ -551,7 +500,6 @@
                 flex: 0 0 auto !important;
             }
 
-            header .header-actions .header-action,
             header .header-actions #menu-btn {
                 display: inline-flex !important;
                 flex: 0 0 30px !important;
@@ -564,22 +512,8 @@
                 line-height: 1 !important;
             }
 
-            header .header-actions .bi-bag,
-            header .header-actions .bi-heart,
             header .header-actions #menu-btn .bi-list {
                 font-size: 1.1rem !important;
-            }
-
-            header .header-actions .header-count {
-                top: -1px !important;
-                right: 0 !important;
-                width: 13px !important;
-                height: 13px !important;
-                margin: 0 !important;
-                padding: 0 !important;
-                transform: none !important;
-                font-size: 7px !important;
-                line-height: 1 !important;
             }
         }
 
@@ -818,16 +752,6 @@
             <!-- Right: Actions -->
             <div class="header-actions flex items-center gap-3 md:gap-4">
                 <div class="hidden sm:flex items-center gap-4 text-sm font-medium text-neutral-300" data-auth-nav="index"></div>
-                <!-- Cart -->
-                <a href="#" onclick="openCart()" class="header-action cursor-hover" title="Open cart">
-                    <i class="bi bi-bag text-xl md:text-2xl text-white"></i>
-                    <span id="cartCount" class="header-count red-gradient rounded-full font-bold">0</span>
-                </a>
-                <!-- Wishlist -->
-                <a href="#" onclick="openWishlist()" class="header-action cursor-hover" title="Open wishlist">
-                    <i class="bi bi-heart text-xl md:text-2xl text-white"></i>
-                    <span id="wishlistCount" class="header-count red-gradient rounded-full font-bold">0</span>
-                </a>
                 <!-- Mobile Menu Button -->
                 <button class="md:hidden flex items-center justify-center text-2xl cursor-hover ml-1" id="menu-btn">
                     <i class="bi bi-list text-white"></i>
@@ -1834,13 +1758,6 @@
     </script>
     <script src="/script.js"></script>
     <script src="/auth.js"></script>
-    <script>
-        // Initialize cart and wishlist counts when page loads
-        document.addEventListener('DOMContentLoaded', function() {
-            updateCartCount();
-            updateWishlistCount();
-        });
-    </script>
 </body>
 </html>
 
