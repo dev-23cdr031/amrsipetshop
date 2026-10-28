@@ -419,6 +419,36 @@
             font-family: 'JetBrains Mono', monospace;
         }
 
+        /* Header action anchors keep their count badges attached to their own icon. */
+        header .header-action {
+            position: relative !important;
+            display: inline-flex !important;
+            flex: 0 0 2.25rem;
+            width: 2.25rem;
+            height: 2.25rem;
+            align-items: center;
+            justify-content: center;
+        }
+
+        header .header-action .header-count {
+            position: absolute !important;
+            top: -0.3125rem !important;
+            right: -0.3125rem !important;
+            bottom: auto !important;
+            left: auto !important;
+            z-index: 1;
+            display: inline-flex !important;
+            width: 1.125rem !important;
+            height: 1.125rem !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            transform: none !important;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.5625rem !important;
+            line-height: 1 !important;
+        }
+
         /* Mobile Navbar â€” Clean, No Conflicts */
         @media (max-width: 991px) {
             header > div {
@@ -441,8 +471,12 @@
             header > div > div:last-child {
                 gap: 0.6rem !important;
             }
-            /* Cart & wishlist badge positions */
-            #cartCount, #wishlistCount {
+            header .header-action {
+                flex-basis: 2rem;
+                width: 2rem;
+                height: 2rem;
+            }
+            header .header-action .header-count {
                 width: 17px !important;
                 height: 17px !important;
                 font-size: 8px !important;
@@ -479,12 +513,18 @@
             header > div > div:last-child {
                 gap: 0.3rem !important;
             }
-            #cartCount, #wishlistCount {
+            header .header-action {
+                flex-basis: 2rem;
+                width: 2rem;
+                height: 2rem;
+            }
+            header .header-action .header-count {
                 width: 14px !important;
                 height: 14px !important;
                 font-size: 7px !important;
-                top: -5px !important;
-                right: -5px !important;
+                /* Pin the count into the icon corner instead of outside its action. */
+                top: 0 !important;
+                right: 4px !important;
             }
             .bi-bag, .bi-heart {
                 font-size: 1.1rem !important;
@@ -732,14 +772,14 @@
             <div class="flex items-center gap-3 md:gap-4">
                 <div class="hidden sm:flex items-center gap-4 text-sm font-medium text-neutral-300" data-auth-nav="index"></div>
                 <!-- Cart -->
-                <a href="#" onclick="openCart()" class="relative cursor-hover flex items-center justify-center" title="Open cart">
+                <a href="#" onclick="openCart()" class="header-action cursor-hover" title="Open cart">
                     <i class="bi bi-bag text-xl md:text-2xl text-white"></i>
-                    <span id="cartCount" class="absolute -top-2 -right-2 w-[18px] h-[18px] md:w-5 md:h-5 red-gradient rounded-full flex items-center justify-center text-[9px] md:text-[10px] font-bold">0</span>
+                    <span id="cartCount" class="header-count red-gradient rounded-full font-bold">0</span>
                 </a>
                 <!-- Wishlist -->
-                <a href="#" onclick="openWishlist()" class="relative cursor-hover flex items-center justify-center" title="Open wishlist">
+                <a href="#" onclick="openWishlist()" class="header-action cursor-hover" title="Open wishlist">
                     <i class="bi bi-heart text-xl md:text-2xl text-white"></i>
-                    <span id="wishlistCount" class="absolute -top-2 -right-2 w-[18px] h-[18px] md:w-5 md:h-5 red-gradient rounded-full flex items-center justify-center text-[9px] md:text-[10px] font-bold">0</span>
+                    <span id="wishlistCount" class="header-count red-gradient rounded-full font-bold">0</span>
                 </a>
                 <!-- Mobile Menu Button -->
                 <button class="md:hidden flex items-center justify-center text-2xl cursor-hover ml-1" id="menu-btn">
