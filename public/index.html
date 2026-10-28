@@ -536,6 +536,53 @@
             }
         }
 
+        /* Keep the three mobile actions on a precise, even rhythm on very narrow screens. */
+        @media (max-width: 220px) {
+            header > div {
+                padding-left: 6px !important;
+                padding-right: 6px !important;
+            }
+
+            header > div > div.header-actions {
+                display: flex !important;
+                align-items: center !important;
+                gap: 6px !important;
+                margin-left: auto !important;
+                flex: 0 0 auto !important;
+            }
+
+            header .header-actions .header-action,
+            header .header-actions #menu-btn {
+                display: inline-flex !important;
+                flex: 0 0 30px !important;
+                width: 30px !important;
+                height: 30px !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                align-items: center !important;
+                justify-content: center !important;
+                line-height: 1 !important;
+            }
+
+            header .header-actions .bi-bag,
+            header .header-actions .bi-heart,
+            header .header-actions #menu-btn .bi-list {
+                font-size: 1.1rem !important;
+            }
+
+            header .header-actions .header-count {
+                top: -1px !important;
+                right: 0 !important;
+                width: 13px !important;
+                height: 13px !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                transform: none !important;
+                font-size: 7px !important;
+                line-height: 1 !important;
+            }
+        }
+
         /* Hide custom cursor on mobile/touch devices */
         @media (hover: none) and (pointer: coarse),
                (max-width: 768px) {
@@ -769,7 +816,7 @@
             </nav>
 
             <!-- Right: Actions -->
-            <div class="flex items-center gap-3 md:gap-4">
+            <div class="header-actions flex items-center gap-3 md:gap-4">
                 <div class="hidden sm:flex items-center gap-4 text-sm font-medium text-neutral-300" data-auth-nav="index"></div>
                 <!-- Cart -->
                 <a href="#" onclick="openCart()" class="header-action cursor-hover" title="Open cart">
